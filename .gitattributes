@@ -1,0 +1,9 @@
+* text=auto
+
+*.png binary
+*.bmp binary
+*.jpg binary
+
+*.sln  text eol=crlf
+*.vcxproj text eol=crlf
+*.vcxproj.filters text eol=crlf
