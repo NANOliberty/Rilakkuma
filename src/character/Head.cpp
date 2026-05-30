@@ -58,7 +58,7 @@ void renderEye() {
     // 머리 표면에 납작하게 박힌 점(z 로 눌러 평평하게, 광택 X). 일러스트처럼 큼.
     glPushMatrix();
     glScalef(1.0f, 1.0f, 0.5f);   // 원형(원본처럼 동그란 눈)
-    glutSolidSphere(0.135f, 28, 28);
+    glutSolidSphere(0.11f, 28, 28);
     glPopMatrix();
 }
 
