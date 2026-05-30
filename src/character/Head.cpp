@@ -163,14 +163,14 @@ SceneNode* BuildHead() {
     face->setRenderFunction(renderFace);
     head->addChild(face);
 
-    // 눈 (원본처럼 동그랗고 살짝 아래쪽, 흰 타원 양옆)
+    // 눈 (완전 원형, 흰 타원 양옆에서 조금 더 아래로)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.40f, 0.05f, 0.91f);
+    leftEye->setTranslation(-0.40f, 0.0f, 0.92f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.40f, 0.05f, 0.91f);
+    rightEye->setTranslation(0.40f, 0.0f, 0.92f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 

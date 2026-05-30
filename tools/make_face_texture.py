@@ -85,19 +85,18 @@ def qbez(p0, p1, p2, steps=200):
 # ---------------- 얼굴 그리기 (논리 512 좌표) ----------------
 CX = 256
 
-# 흰 cream 타원 (작고 가로로 넓게)
-fill_ellipse(CX, 292, 106, 76, CREAM)
+# 흰 cream 타원 (작게)
+fill_ellipse(CX, 288, 84, 60, CREAM)
 
 # 코: 작은 둥근 역삼각형(아래로 살짝 뾰족, 끝이 둥근)
-fill_ellipse(CX, 256, 40, 20, DARK)
-fill_tri((CX - 40, 256), (CX + 40, 256), (CX, 284), DARK)
-stamp(CX, 282, 10, DARK)
+fill_ellipse(CX, 262, 30, 15, DARK)
+fill_tri((CX - 30, 262), (CX + 30, 262), (CX, 283), DARK)
+stamp(CX, 281, 8, DARK)
 
-# 입: 코 끝 바로 아래에서 좌우로 갈라지는 짧은 두 획(人).
-# 긴 수직선 없이 코에 바로 붙어 컴팩트하게 -> 우울해 보이지 않게.
-SPLIT = (CX, 284)
-stroke_path(qbez(SPLIT, (CX - 28, 300), (CX - 44, 308)), 6, DARK)
-stroke_path(qbez(SPLIT, (CX + 28, 300), (CX + 44, 308)), 6, DARK)
+# 입: 코 끝 바로 아래에서 좌우로 갈라지는 짧은 두 획(人). 컴팩트하게.
+SPLIT = (CX, 283)
+stroke_path(qbez(SPLIT, (CX - 19, 295), (CX - 31, 301)), 5, DARK)
+stroke_path(qbez(SPLIT, (CX + 19, 295), (CX + 31, 301)), 5, DARK)
 
 # ---------------- SS 배 -> 512 다운샘플(박스 평균) ----------------
 out = bytearray(W * H * 3)
