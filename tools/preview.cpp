@@ -23,6 +23,7 @@ int main(int argc, char** argv) {
     float phi   = argc > 2 ? atof(argv[2]) : 15.0f;
     float dist  = argc > 3 ? atof(argv[3]) : 8.0f;
     const char* out = argc > 4 ? argv[4] : "preview.ppm";
+    float targetY = argc > 5 ? atof(argv[5]) : 0.5f;
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA | GLUT_DEPTH);
@@ -46,6 +47,7 @@ int main(int argc, char** argv) {
     gluPerspective(45.0, (double)W / H, 0.1, 100.0);
 
     Camera cam;
+    cam.setTarget(0.0f, targetY, 0.0f);
     cam.addOrbit(theta, phi - 15.0f); // 기본 phi=15 기준 보정
     cam.zoom(dist / 8.0f);            // 기본 dist=8 기준 보정
 

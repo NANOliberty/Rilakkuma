@@ -61,26 +61,28 @@ void renderEye() {
 }
 
 //------------------------------------------------------------------------------
-// 귀: 납작한 갈색 원반 + 안쪽-아래로 치우친 큰 노란 부분(원본처럼).
-//  innerSign: 노란색을 귀의 "안쪽(머리 중심 쪽)"으로 밀어주는 부호.
-//             왼쪽 귀(+24° 회전)는 +1, 오른쪽 귀(-24°)는 -1.
+// 귀: 납작한 갈색 원반 + 귀 "가운데에서 아래로" 내려오는 큰 노란 부분(원본처럼).
+//  innerSign : 노란색을 살짝 안쪽(머리 중심 쪽)으로 미는 부호.
+//  earRotDeg : 귀 노드의 기울기 각. 노란색은 이 기울기를 상쇄해 머리 정렬
+//              축에서 배치하므로 "아래"가 항상 진짜 아래가 된다.
 //------------------------------------------------------------------------------
-void renderEar(float innerSign) {
+void renderEar(float innerSign, float earRotDeg) {
     Lighting::applyPlushMaterial();
 
-    // 귀 본체 (갈색, 납작하고 크게)
+    // 귀 본체 (갈색, 납작하고 크게, 바깥으로 기울어진 상태)
     Palette::brown();
     glPushMatrix();
     glScalef(1.0f, 1.0f, 0.5f);
     glutSolidSphere(0.46f, 32, 32);
     glPopMatrix();
 
-    // 안쪽 노란색: 크게 + 안쪽-아래로 치우치게(원본의 초승달 느낌).
-    // 바깥-위쪽에 갈색 테가 남아 자연히 초승달처럼 보인다.
+    // 노란색: 귀 기울기를 상쇄(머리 정렬)한 뒤 가운데보다 아래로 크게 배치.
+    // 위쪽에 갈색 테가 남아 원본처럼 "가운데에서 아래로 내려오는" 모양이 된다.
     Palette::yellow();
     glPushMatrix();
-    glTranslatef(innerSign * 0.13f, -0.11f, 0.20f);
-    glScalef(0.74f, 0.86f, 0.30f);
+    glRotatef(-earRotDeg, 0.0f, 0.0f, 1.0f);          // 머리 정렬로 복귀
+    glTranslatef(innerSign * 0.04f, -0.12f, 0.18f);   // 거의 가운데 + 아래로
+    glScalef(0.80f, 0.84f, 0.30f);
     glutSolidSphere(0.42f, 28, 28);
     glPopMatrix();
 }
@@ -178,13 +180,13 @@ SceneNode* BuildHead() {
     SceneNode* leftEar = new SceneNode();
     leftEar->setTranslation(-0.72f, 0.66f, 0.0f);
     leftEar->setRotation(24.0f, 0.0f, 0.0f, 1.0f);
-    leftEar->setRenderFunction([]() { renderEar(+1.0f); });
+    leftEar->setRenderFunction([]() { renderEar(+1.0f, 24.0f); });
     head->addChild(leftEar);
 
     SceneNode* rightEar = new SceneNode();
     rightEar->setTranslation(0.72f, 0.66f, 0.0f);
     rightEar->setRotation(-24.0f, 0.0f, 0.0f, 1.0f);
-    rightEar->setRenderFunction([]() { renderEar(-1.0f); });
+    rightEar->setRenderFunction([]() { renderEar(-1.0f, -24.0f); });
     head->addChild(rightEar);
 
     return head;
