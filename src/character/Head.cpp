@@ -81,8 +81,10 @@ void renderEar(float innerSign, float earRotDeg) {
     Palette::yellow();
     glPushMatrix();
     glRotatef(-earRotDeg, 0.0f, 0.0f, 1.0f);          // 머리 정렬로 복귀
-    glTranslatef(innerSign * 0.04f, -0.12f, 0.18f);   // 거의 가운데 + 아래로
-    glScalef(0.80f, 0.84f, 0.30f);
+    // 노란색의 "위쪽 끝"이 귀 중앙(y=0) 근처에서 시작해 아래 절반만 채우도록:
+    // 중심을 아래로 내리고 세로를 납작하게 한다.
+    glTranslatef(innerSign * 0.04f, -0.20f, 0.18f);
+    glScalef(0.82f, 0.56f, 0.30f);
     glutSolidSphere(0.42f, 28, 28);
     glPopMatrix();
 }
