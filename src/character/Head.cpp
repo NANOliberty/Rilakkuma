@@ -57,8 +57,8 @@ void renderEye() {
     Palette::eye();
     // 머리 표면에 납작하게 박힌 점(z 로 눌러 평평하게, 광택 X). 일러스트처럼 큼.
     glPushMatrix();
-    glScalef(0.95f, 1.08f, 0.5f);
-    glutSolidSphere(0.142f, 28, 28);
+    glScalef(1.0f, 1.0f, 0.5f);   // 원형(원본처럼 동그란 눈)
+    glutSolidSphere(0.135f, 28, 28);
     glPopMatrix();
 }
 
@@ -75,11 +75,12 @@ void renderEar() {
     glutSolidSphere(0.46f, 32, 32);
     glPopMatrix();
 
-    // 안쪽 노란색: 크고 둥글게, 귀 위쪽으로 올려 배치(원본처럼)
+    // 안쪽 노란색: 작게 + 귀 아래-안쪽으로(원본처럼). 귀가 바깥으로 기울어
+    // 있어 로컬 -y 로 내리면 자연히 안쪽-아래에 위치한다.
     Palette::yellow();
     glPushMatrix();
-    glTranslatef(0.0f, 0.07f, 0.16f);
-    glScalef(0.70f, 0.80f, 0.30f);
+    glTranslatef(0.0f, -0.08f, 0.21f);
+    glScalef(0.60f, 0.66f, 0.30f);
     glutSolidSphere(0.40f, 28, 28);
     glPopMatrix();
 }
@@ -162,14 +163,14 @@ SceneNode* BuildHead() {
     face->setRenderFunction(renderFace);
     head->addChild(face);
 
-    // 눈 (흰 타원 위쪽 양옆, 원본 비율에 맞춰 적당히)
+    // 눈 (원본처럼 동그랗고 살짝 아래쪽, 흰 타원 양옆)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.40f, 0.15f, 0.89f);
+    leftEye->setTranslation(-0.40f, 0.05f, 0.91f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.40f, 0.15f, 0.89f);
+    rightEye->setTranslation(0.40f, 0.05f, 0.91f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 

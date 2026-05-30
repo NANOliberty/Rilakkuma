@@ -72,11 +72,14 @@ def fill_tri(p0, p1, p2, c):
             for x in range(int(min(xs)), int(max(xs)) + 1):
                 put(x, y, c)
 
-def lower_arc(cx, cy, r, steps=400):
+def qbez(p0, p1, p2, steps=200):
+    """2차 베지에 곡선 점들."""
     pts = []
     for k in range(steps + 1):
-        a = math.pi * k / steps          # 0..pi -> 아래로 볼록한 반원
-        pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+        t = k / steps
+        x = (1-t)**2*p0[0] + 2*(1-t)*t*p1[0] + t*t*p2[0]
+        y = (1-t)**2*p0[1] + 2*(1-t)*t*p1[1] + t*t*p2[1]
+        pts.append((x, y))
     return pts
 
 # ---------------- 얼굴 그리기 (논리 512 좌표) ----------------
@@ -86,16 +89,17 @@ CX = 256
 fill_ellipse(CX, 292, 106, 76, CREAM)
 
 # 코: 둥근 역삼각형(위 넓고 아래로 좁아지며 끝이 둥근)
-fill_ellipse(CX, 252, 44, 21, DARK)
-fill_tri((CX - 44, 252), (CX + 44, 252), (CX, 286), DARK)
-stamp(CX, 284, 11, DARK)
+fill_ellipse(CX, 250, 44, 21, DARK)
+fill_tri((CX - 44, 250), (CX + 44, 250), (CX, 284), DARK)
+stamp(CX, 282, 11, DARK)
 
-# 코 아래 -> 입 갈림점 수직선
-stroke_path([(CX, y) for y in range(285, 320)], 6, DARK)
-
-# 입: 두 개의 아래로 볼록한 호 (∪∪)
-stroke_path(lower_arc(220, 318, 38), 6, DARK)
-stroke_path(lower_arc(292, 318, 38), 6, DARK)
+# 입: 원본은 ∪∪ 가 아니라 코에서 내려와 좌우로 갈라지는 Y(人) 모양.
+SPLIT = (CX, 308)
+# 코 아래 -> 갈림점 짧은 수직선
+stroke_path([(CX, y) for y in range(283, 309)], 6, DARK)
+# 갈림점에서 좌우로 벌어지는 두 획 (살짝 바깥으로 휘게)
+stroke_path(qbez(SPLIT, (CX - 26, 322), (CX - 44, 338)), 6, DARK)
+stroke_path(qbez(SPLIT, (CX + 26, 322), (CX + 44, 338)), 6, DARK)
 
 # ---------------- SS 배 -> 512 다운샘플(박스 평균) ----------------
 out = bytearray(W * H * 3)
