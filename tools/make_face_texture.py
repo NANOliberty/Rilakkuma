@@ -45,11 +45,35 @@ def stroke_path(points, r, c):
     for (x, y) in points:
         stamp(x, y, r, c)
 
-# --- 코: 둥근 삼각형 느낌의 가로 타원 ---
-fill_ellipse(256, 212, 46, 33, DARK)
+def fill_tri(p0, p1, p2, c):
+    """삼각형 스캔라인 채우기."""
+    pts = [p0, p1, p2]
+    ys = [p[1] for p in pts]
+    y0, y1 = int(min(ys)), int(max(ys))
+    def edges_x(y):
+        xs = []
+        for i in range(3):
+            ax, ay = pts[i]
+            bx, by = pts[(i + 1) % 3]
+            if (ay <= y < by) or (by <= y < ay):
+                t = (y - ay) / (by - ay)
+                xs.append(ax + t * (bx - ax))
+        return xs
+    for y in range(y0, y1 + 1):
+        xs = edges_x(y)
+        if len(xs) >= 2:
+            xl, xr = int(min(xs)), int(max(xs))
+            for x in range(xl, xr + 1):
+                put(x, y, c)
+
+# --- 코: 둥근 역삼각형(위 넓고 아래로 좁아지며 끝이 둥근) ---
+NOSE_CX = 256
+fill_ellipse(NOSE_CX, 198, 52, 26, DARK)                 # 위쪽 둥근 캡
+fill_tri((NOSE_CX - 52, 198), (NOSE_CX + 52, 198), (NOSE_CX, 240), DARK)  # 아래로 수렴
+stamp(NOSE_CX, 236, 12, DARK)                            # 끝 둥글게
 
 # --- 코 아래 -> 입 갈림점 수직선 ---
-vline = [(256, y) for y in range(243, 286)]
+vline = [(NOSE_CX, y) for y in range(240, 288)]
 stroke_path(vline, 7, DARK)
 
 # --- 입: 두 개의 아래로 볼록한 호(∪∪ = 리락쿠마 입) ---
@@ -60,8 +84,8 @@ def lower_arc(cx, cy, r, steps=160):
         pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
     return pts
 
-stroke_path(lower_arc(214, 284, 43), 7, DARK)   # 왼쪽 입
-stroke_path(lower_arc(298, 284, 43), 7, DARK)   # 오른쪽 입
+stroke_path(lower_arc(214, 286, 43), 7, DARK)   # 왼쪽 입
+stroke_path(lower_arc(298, 286, 43), 7, DARK)   # 오른쪽 입
 
 # ---------- PNG 인코딩 ----------
 def png_chunk(tag, data):

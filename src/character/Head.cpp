@@ -32,8 +32,8 @@ const float kHeadRadius = 1.0f;
 // 머즐(흰 주둥이) 배치 파라미터 — 한곳에서 관리
 const float kMuzzleCY = -0.26f;  // 머리 로컬 y (얼굴 아래쪽)
 const float kMuzzleCZ = 0.66f;   // 머리 로컬 z (앞쪽)
-const float kMuzzleRX = 0.60f;   // 가로 반경 (넓은 타원)
-const float kMuzzleRY = 0.42f;   // 세로 반경
+const float kMuzzleRX = 0.63f;   // 가로 반경 (넓은 타원)
+const float kMuzzleRY = 0.40f;   // 세로 반경
 const float kMuzzleRZ = 0.40f;   // 깊이 반경 (앞으로 살짝만 돌출)
 
 //------------------------------------------------------------------------------
@@ -42,7 +42,12 @@ const float kMuzzleRZ = 0.40f;   // 깊이 반경 (앞으로 살짝만 돌출)
 void renderHeadSphere() {
     Lighting::applyPlushMaterial();
     Palette::brown();
+    // 실제 리락쿠마처럼 세로보다 가로가 살짝 넓은 머리(완전한 구보다 귀여움).
+    // 자식 좌표계는 그대로 두고 메쉬만 스케일(앞쪽 z 는 유지).
+    glPushMatrix();
+    glScalef(1.05f, 0.97f, 1.0f);
     glutSolidSphere(kHeadRadius, 48, 48);
+    glPopMatrix();
 }
 
 //------------------------------------------------------------------------------
@@ -51,12 +56,17 @@ void renderHeadSphere() {
 void renderEye() {
     Lighting::applyPlushMaterial();
     Palette::eye();
-    glutSolidSphere(0.12f, 24, 24);
-
+    // 실제 리락쿠마처럼 크고 또렷한 눈(살짝 세로로 긴 타원).
     glPushMatrix();
-    glTranslatef(0.035f, 0.045f, 0.09f);
-    glColor3f(0.92f, 0.92f, 0.92f);
-    glutSolidSphere(0.032f, 12, 12);
+    glScalef(0.92f, 1.05f, 0.85f);
+    glutSolidSphere(0.155f, 28, 28);
+    glPopMatrix();
+
+    // 흰 하이라이트
+    glPushMatrix();
+    glTranslatef(0.05f, 0.06f, 0.11f);
+    glColor3f(0.95f, 0.95f, 0.95f);
+    glutSolidSphere(0.045f, 14, 14);
     glPopMatrix();
 }
 
@@ -181,14 +191,14 @@ SceneNode* BuildHead() {
     muzzle->setRenderFunction(renderMuzzle);
     head->addChild(muzzle);
 
-    // 눈 (머즐 위쪽 양옆, 와이드 셋)
+    // 눈 (머즐 위쪽 양옆, 살짝 낮고 좁게 -> 실제 리락쿠마 느낌)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.43f, 0.26f, 0.85f);
+    leftEye->setTranslation(-0.40f, 0.20f, 0.84f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.43f, 0.26f, 0.85f);
+    rightEye->setTranslation(0.40f, 0.20f, 0.84f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 
