@@ -61,31 +61,25 @@ void renderEye() {
 }
 
 //------------------------------------------------------------------------------
-// 귀: 납작한 갈색 원반 + 귀 "가운데에서 아래로" 내려오는 큰 노란 부분(원본처럼).
-//  innerSign : 노란색을 살짝 안쪽(머리 중심 쪽)으로 미는 부호.
-//  earRotDeg : 귀 노드의 기울기 각. 노란색은 이 기울기를 상쇄해 머리 정렬
-//              축에서 배치하므로 "아래"가 항상 진짜 아래가 된다.
+// 귀: 납작한 갈색 원반 + 앞면을 채우는 노란 안쪽.
 //------------------------------------------------------------------------------
-void renderEar(float innerSign, float earRotDeg) {
+void renderEar() {
     Lighting::applyPlushMaterial();
 
-    // 귀 본체 (갈색, 납작하고 크게, 바깥으로 기울어진 상태)
+    // 귀 본체 (갈색, 납작하고 크게)
     Palette::brown();
     glPushMatrix();
     glScalef(1.0f, 1.0f, 0.5f);
     glutSolidSphere(0.46f, 32, 32);
     glPopMatrix();
 
-    // 노란색: 귀 기울기를 상쇄(머리 정렬)한 뒤 가운데보다 아래로 크게 배치.
-    // 위쪽에 갈색 테가 남아 원본처럼 "가운데에서 아래로 내려오는" 모양이 된다.
+    // 안쪽 노란색: 작게 + 귀 아래-안쪽으로(원본처럼). 귀가 바깥으로 기울어
+    // 있어 로컬 -y 로 내리면 자연히 안쪽-아래에 위치한다.
     Palette::yellow();
     glPushMatrix();
-    glRotatef(-earRotDeg, 0.0f, 0.0f, 1.0f);          // 머리 정렬로 복귀
-    // 노란색의 "위쪽 끝"이 귀 중앙(y=0) 근처에서 시작해 아래 절반만 채우도록:
-    // 중심을 아래로 내리고 세로를 납작하게 한다.
-    glTranslatef(innerSign * 0.04f, -0.20f, 0.18f);
-    glScalef(0.82f, 0.56f, 0.30f);
-    glutSolidSphere(0.42f, 28, 28);
+    glTranslatef(0.0f, -0.08f, 0.21f);
+    glScalef(0.60f, 0.66f, 0.30f);
+    glutSolidSphere(0.40f, 28, 28);
     glPopMatrix();
 }
 
@@ -182,13 +176,13 @@ SceneNode* BuildHead() {
     SceneNode* leftEar = new SceneNode();
     leftEar->setTranslation(-0.72f, 0.66f, 0.0f);
     leftEar->setRotation(24.0f, 0.0f, 0.0f, 1.0f);
-    leftEar->setRenderFunction([]() { renderEar(+1.0f, 24.0f); });
+    leftEar->setRenderFunction(renderEar);
     head->addChild(leftEar);
 
     SceneNode* rightEar = new SceneNode();
     rightEar->setTranslation(0.72f, 0.66f, 0.0f);
     rightEar->setRotation(-24.0f, 0.0f, 0.0f, 1.0f);
-    rightEar->setRenderFunction([]() { renderEar(-1.0f, -24.0f); });
+    rightEar->setRenderFunction(renderEar);
     head->addChild(rightEar);
 
     return head;
