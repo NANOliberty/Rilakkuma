@@ -1,15 +1,15 @@
 //==============================================================================
 // Head.cpp  -  리락쿠마 얼굴부 (A 담당)
 //
-//  좌표(PROJECT_SPEC 5.2.1)는 모두 "월드 기준"으로 주어져 있다. 머리 노드를
-//  (0,1.5,0) 으로 옮기므로, 머리의 자식들은 (월드좌표 - (0,1.5,0)) = 머리
-//  로컬좌표로 배치한다.
+//  좌표(PROJECT_SPEC 5.2.1)는 월드 기준. 머리 노드를 (0,1.5,0) 으로 옮기므로
+//  머리의 자식들은 머리 로컬좌표(= 월드 - (0,1.5,0))로 배치한다.
 //
-//    cream 영역 중심 (0,1.3,0.85) -> 로컬 (0,-0.2,0.85)
-//    왼쪽 눈        (-0.45,1.7,0.85) -> 로컬 (-0.45,0.2,0.85)
-//    오른쪽 눈      (+0.45,1.7,0.85) -> 로컬 (+0.45,0.2,0.85)
-//    왼쪽 귀 중심   (-0.7,2.1,0)     -> 로컬 (-0.7,0.6,0)
-//    오른쪽 귀 중심 (+0.7,2.1,0)     -> 로컬 (+0.7,0.6,0)
+//  v2 수정(스크린샷 피드백 반영):
+//   - cream 영역을 "사각 패치" -> "둥근 흰 머즐(타원체)"로 변경. 대부분 머리에
+//     묻히고 앞면만 살짝 둥글게 돌출 -> 옆에서 봐도 판때기/사각 경계가 안 보임.
+//   - 코+입 텍스처는 머즐 앞면에 곡면 데칼로 매핑. 텍스처의 흰 배경이 머즐
+//     흰색과 같아 데칼 사각 경계가 보이지 않는다(어두운 코+입만 보임).
+//   - 귀 안쪽 노란색을 작고 납작하게 눕혀 옆면 돌출을 줄임.
 //==============================================================================
 #include "Rilakkuma.h"
 #include "../core/SceneNode.h"
@@ -29,6 +29,13 @@ namespace {
 const float kPi = 3.14159265358979323846f;
 const float kHeadRadius = 1.0f;
 
+// 머즐(흰 주둥이) 배치 파라미터 — 한곳에서 관리
+const float kMuzzleCY = -0.26f;  // 머리 로컬 y (얼굴 아래쪽)
+const float kMuzzleCZ = 0.66f;   // 머리 로컬 z (앞쪽)
+const float kMuzzleRX = 0.60f;   // 가로 반경 (넓은 타원)
+const float kMuzzleRY = 0.42f;   // 세로 반경
+const float kMuzzleRZ = 0.40f;   // 깊이 반경 (앞으로 살짝만 돌출)
+
 //------------------------------------------------------------------------------
 // 머리 메인 구 (단색 갈색)
 //------------------------------------------------------------------------------
@@ -44,97 +51,114 @@ void renderHeadSphere() {
 void renderEye() {
     Lighting::applyPlushMaterial();
     Palette::eye();
-    glutSolidSphere(0.13f, 24, 24);
+    glutSolidSphere(0.12f, 24, 24);
 
-    // 하이라이트 (살짝 +z, +y 로 띄움)
     glPushMatrix();
-    glTranslatef(0.04f, 0.05f, 0.10f);
-    glColor3f(0.9f, 0.9f, 0.9f);
-    glutSolidSphere(0.035f, 12, 12);
+    glTranslatef(0.035f, 0.045f, 0.09f);
+    glColor3f(0.92f, 0.92f, 0.92f);
+    glutSolidSphere(0.032f, 12, 12);
     glPopMatrix();
 }
 
 //------------------------------------------------------------------------------
-// 귀: 납작한 갈색 구 + 앞면(+z)에 작은 노란 원 포인트
+// 귀: 납작한 갈색 구 + 앞면에 작고 납작한 노란 안쪽 (덜 튀어나오게)
 //------------------------------------------------------------------------------
 void renderEar() {
     Lighting::applyPlushMaterial();
 
-    // 귀 본체 (갈색, 살짝 납작하게)
+    // 귀 본체 (갈색, 납작)
     Palette::brown();
     glPushMatrix();
-    glScalef(1.0f, 1.0f, 0.6f);
-    glutSolidSphere(0.42f, 32, 32);
+    glScalef(1.0f, 1.0f, 0.55f);
+    glutSolidSphere(0.40f, 32, 32);
     glPopMatrix();
 
-    // 안쪽 노란 원 포인트 (앞쪽으로 살짝 돌출)
+    // 안쪽 노란색: 작고 납작한 오발을 앞면에 살짝만 얹음
     Palette::yellow();
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, 0.30f);
-    glScalef(1.0f, 1.0f, 0.4f);
-    glutSolidSphere(0.22f, 24, 24);
+    glTranslatef(0.0f, -0.01f, 0.18f);
+    glScalef(0.55f, 0.70f, 0.22f);
+    glutSolidSphere(0.30f, 24, 24);
     glPopMatrix();
 }
 
 //------------------------------------------------------------------------------
-// cream 영역 = 얼굴 앞쪽에 붙는 곡면 텍스처 패치(코+입 자수).
-//
-//  머리 반지름 R 구의 앞면(+z) 일부를 살짝 띄워(R+eps) 패치로 그린다.
-//  patch 중심은 아래로 centerPitch 만큼 내려 입 주변에 오게 한다.
-//  (u,v) in [0,1]^2 -> 패치 전체에 텍스처가 한 번 매핑되므로, 텍스처 중앙의
-//  코+입 자수가 얼굴 정면 중앙에 자연스럽게 표시된다.
+// 머즐(흰 주둥이) + 코+입 텍스처 데칼.
+//  1) 흰 타원체를 그려 둥근 주둥이를 만든다(대부분 머리에 묻힘 -> 앞만 돌출).
+//  2) 그 앞면에 코+입 텍스처를 곡면 데칼로 얹는다. 흰 배경이 머즐과 같은 색이라
+//     사각 경계 없이 어두운 코+입만 자연스럽게 보인다.
 //------------------------------------------------------------------------------
-void renderCreamPatch() {
-    const float R = kHeadRadius + 0.015f; // 표면보다 살짝 바깥(z-fighting 방지)
-    const float halfU = 42.0f * kPi / 180.0f; // 좌우 반각
-    const float halfV = 34.0f * kPi / 180.0f; // 상하 반각
-    const float pitch0 = -12.0f * kPi / 180.0f; // 패치 중심을 아래로
-    const int   N = 24; // 분할 수
+void renderMuzzle() {
+    // --- 1) 흰 머즐 본체 ---
+    Lighting::applyPlushMaterial();
+    Palette::cream();
+    glPushMatrix();
+    glTranslatef(0.0f, kMuzzleCY, kMuzzleCZ);
+    MeshUtils::renderEllipsoid(kMuzzleRX, kMuzzleRY, kMuzzleRZ, 40, 40);
+    glPopMatrix();
+
+    // --- 2) 코+입 텍스처 데칼 (머즐 앞면 곡면을 따라) ---
+    const float halfU = 50.0f * kPi / 180.0f; // 좌우 반각
+    const float halfV = 46.0f * kPi / 180.0f; // 상하 반각
+    const int   N = 22;
 
     bool textured = (g_faceTexId != 0);
     if (textured) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, g_faceTexId);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        glColor3f(1.0f, 1.0f, 1.0f); // 텍스처 색 그대로(조명만 반영)
+        glColor3f(1.0f, 1.0f, 1.0f);
     } else {
-        Palette::cream(); // 폴백: cream 단색
+        Palette::cream();
     }
     Lighting::applyPlushMaterial();
 
+    glPushMatrix();
+    glTranslatef(0.0f, kMuzzleCY, kMuzzleCZ);
     for (int i = 0; i < N; ++i) {
         float v0 = (float)i / N;
         float v1 = (float)(i + 1) / N;
-        // v -> pitch (위가 v=1)
-        float th0 = pitch0 + (v0 - 0.5f) * 2.0f * halfV;
-        float th1 = pitch0 + (v1 - 0.5f) * 2.0f * halfV;
+        float th0 = (v0 - 0.5f) * 2.0f * halfV;
+        float th1 = (v1 - 0.5f) * 2.0f * halfV;
 
         glBegin(GL_QUAD_STRIP);
         for (int j = 0; j <= N; ++j) {
             float u = (float)j / N;
-            float ph = (u - 0.5f) * 2.0f * halfU; // yaw
+            float ph = (u - 0.5f) * 2.0f * halfU;
 
             // 위 행 (v1)
             {
                 float dx = cosf(th1) * sinf(ph);
                 float dy = sinf(th1);
                 float dz = cosf(th1) * cosf(ph);
+                // 타원체 위 점 + 바깥으로 살짝(z-fighting 방지)
+                float px = (kMuzzleRX + 0.012f) * dx;
+                float py = (kMuzzleRY + 0.012f) * dy;
+                float pz = (kMuzzleRZ + 0.012f) * dz;
+                float nx = dx / kMuzzleRX, ny = dy / kMuzzleRY, nz = dz / kMuzzleRZ;
+                float nl = sqrtf(nx*nx + ny*ny + nz*nz); if (nl < 1e-6f) nl = 1.0f;
                 if (textured) glTexCoord2f(u, v1);
-                glNormal3f(dx, dy, dz);
-                glVertex3f(R * dx, R * dy, R * dz);
+                glNormal3f(nx/nl, ny/nl, nz/nl);
+                glVertex3f(px, py, pz);
             }
             // 아래 행 (v0)
             {
                 float dx = cosf(th0) * sinf(ph);
                 float dy = sinf(th0);
                 float dz = cosf(th0) * cosf(ph);
+                float px = (kMuzzleRX + 0.012f) * dx;
+                float py = (kMuzzleRY + 0.012f) * dy;
+                float pz = (kMuzzleRZ + 0.012f) * dz;
+                float nx = dx / kMuzzleRX, ny = dy / kMuzzleRY, nz = dz / kMuzzleRZ;
+                float nl = sqrtf(nx*nx + ny*ny + nz*nz); if (nl < 1e-6f) nl = 1.0f;
                 if (textured) glTexCoord2f(u, v0);
-                glNormal3f(dx, dy, dz);
-                glVertex3f(R * dx, R * dy, R * dz);
+                glNormal3f(nx/nl, ny/nl, nz/nl);
+                glVertex3f(px, py, pz);
             }
         }
         glEnd();
     }
+    glPopMatrix();
 
     if (textured) {
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -152,33 +176,31 @@ SceneNode* BuildHead() {
     head->setTranslation(0.0f, 1.5f, 0.0f);   // 머리 중심 (0,1.5,0)
     head->setRenderFunction(renderHeadSphere);
 
-    // cream 영역(코+입 텍스처) — 머리 앞면에 곡면 패치
-    SceneNode* cream = new SceneNode();
-    cream->setRenderFunction(renderCreamPatch);
-    head->addChild(cream);
+    // cream 머즐(코+입 텍스처)
+    SceneNode* muzzle = new SceneNode();
+    muzzle->setRenderFunction(renderMuzzle);
+    head->addChild(muzzle);
 
-    // 왼쪽 눈 (로컬 -0.45, 0.2, 0.85)
+    // 눈 (머즐 위쪽 양옆, 와이드 셋)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.45f, 0.2f, 0.85f);
+    leftEye->setTranslation(-0.43f, 0.26f, 0.85f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
-    // 오른쪽 눈 (로컬 +0.45, 0.2, 0.85)
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.45f, 0.2f, 0.85f);
+    rightEye->setTranslation(0.43f, 0.26f, 0.85f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 
-    // 왼쪽 귀 (로컬 -0.7, 0.6, 0), 살짝 바깥으로 기울임
+    // 귀 (위쪽 양옆, 살짝 바깥으로 기울임)
     SceneNode* leftEar = new SceneNode();
-    leftEar->setTranslation(-0.7f, 0.6f, 0.0f);
+    leftEar->setTranslation(-0.7f, 0.62f, 0.0f);
     leftEar->setRotation(20.0f, 0.0f, 0.0f, 1.0f);
     leftEar->setRenderFunction(renderEar);
     head->addChild(leftEar);
 
-    // 오른쪽 귀 (로컬 +0.7, 0.6, 0)
     SceneNode* rightEar = new SceneNode();
-    rightEar->setTranslation(0.7f, 0.6f, 0.0f);
+    rightEar->setTranslation(0.7f, 0.62f, 0.0f);
     rightEar->setRotation(-20.0f, 0.0f, 0.0f, 1.0f);
     rightEar->setRenderFunction(renderEar);
     head->addChild(rightEar);

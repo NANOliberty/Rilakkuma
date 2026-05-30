@@ -65,15 +65,15 @@ namespace {
 void renderBodyPlaceholder() {
     Lighting::applyPlushMaterial();
     Palette::brown();
-    // 몸통: 머리보다 약간 큰 타원체 (살짝 세로로)
-    MeshUtils::renderEllipsoid(1.35f, 1.45f, 1.25f, 40, 40);
+    // 몸통: 머리(r=1.0)와 비슷~약간 큰 정도로. 너무 크면 머리가 작아 보임.
+    MeshUtils::renderEllipsoid(1.20f, 1.30f, 1.15f, 40, 40);
 }
 
 // --- 플레이스홀더: 흰 배 (앞쪽 +z 로 살짝 돌출) ---
 void renderBellyPlaceholder() {
     Lighting::applyPlushMaterial();
     Palette::belly();
-    MeshUtils::renderEllipsoid(0.8f, 0.9f, 0.5f, 32, 32);
+    MeshUtils::renderEllipsoid(0.68f, 0.8f, 0.45f, 32, 32);
 }
 
 } // namespace
