@@ -55,11 +55,9 @@ void renderHeadSphere() {
 void renderEye() {
     Lighting::applyPlushMaterial();
     Palette::eye();
-    // 머리 표면에 납작하게 박힌 점(z 로 눌러 평평하게, 광택 X). 일러스트처럼 큼.
-    glPushMatrix();
-    glScalef(1.0f, 1.0f, 0.5f);   // 원형(원본처럼 동그란 눈)
-    glutSolidSphere(0.11f, 28, 28);
-    glPopMatrix();
+    // 완전한 구로 그린다. 납작한 원반은 머리 옆면 곡률에 가려 한쪽이 잘려
+    // 세로 타원처럼 보였다. 구는 어느 각도에서도 동그란 점으로 보인다.
+    glutSolidSphere(0.105f, 28, 28);
 }
 
 //------------------------------------------------------------------------------
@@ -163,14 +161,14 @@ SceneNode* BuildHead() {
     face->setRenderFunction(renderFace);
     head->addChild(face);
 
-    // 눈 (완전 원형, 흰 타원 양옆에서 조금 더 아래로)
+    // 눈 (완전한 구. 머리 밖으로 살짝 나와 어디서 봐도 동그랗게)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.40f, 0.0f, 0.92f);
+    leftEye->setTranslation(-0.40f, 0.0f, 0.94f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.40f, 0.0f, 0.92f);
+    rightEye->setTranslation(0.40f, 0.0f, 0.94f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 
