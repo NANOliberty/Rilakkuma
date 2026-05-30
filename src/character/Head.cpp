@@ -29,12 +29,13 @@ namespace {
 const float kPi = 3.14159265358979323846f;
 const float kHeadRadius = 1.0f;
 
-// 머즐(흰 주둥이) 배치 파라미터 — 한곳에서 관리
-const float kMuzzleCY = -0.26f;  // 머리 로컬 y (얼굴 아래쪽)
-const float kMuzzleCZ = 0.66f;   // 머리 로컬 z (앞쪽)
-const float kMuzzleRX = 0.63f;   // 가로 반경 (넓은 타원)
-const float kMuzzleRY = 0.40f;   // 세로 반경
-const float kMuzzleRZ = 0.40f;   // 깊이 반경 (앞으로 살짝만 돌출)
+// 얼굴 텍스처 패치 파라미터.
+//  머리 표면에 거의 밀착(돌출 X)하는 곡면 패치에 face_cream.png 를 입힌다.
+//  텍스처 배경이 머리 갈색과 같아 패치 경계는 보이지 않고, 가운데 흰 타원 +
+//  코 + 입만 평평하게 나타난다(실제 리락쿠마처럼).
+const float kFacePitch = -8.0f;  // 패치 중심을 아래로(도)
+const float kFaceHalfU = 52.0f;  // 좌우 반각(도)
+const float kFaceHalfV = 50.0f;  // 상하 반각(도)
 
 //------------------------------------------------------------------------------
 // 머리 메인 구 (단색 갈색)
@@ -42,31 +43,22 @@ const float kMuzzleRZ = 0.40f;   // 깊이 반경 (앞으로 살짝만 돌출)
 void renderHeadSphere() {
     Lighting::applyPlushMaterial();
     Palette::brown();
-    // 실제 리락쿠마처럼 세로보다 가로가 살짝 넓은 머리(완전한 구보다 귀여움).
-    // 자식 좌표계는 그대로 두고 메쉬만 스케일(앞쪽 z 는 유지).
-    glPushMatrix();
-    glScalef(1.05f, 0.97f, 1.0f);
+    // 순수 구로 그린다. (구를 스케일하면 표면 법선이 얼굴 텍스처 패치의 법선과
+    // 어긋나 패치 사각 경계가 음영 차이로 드러난다. 구로 두면 패치가 머리와
+    // 완전히 같은 색·조명이 되어 경계가 사라진다.)
     glutSolidSphere(kHeadRadius, 48, 48);
-    glPopMatrix();
 }
 
 //------------------------------------------------------------------------------
-// 눈: 검은 작은 구 + 아주 작은 흰 하이라이트
+// 눈: 진한 갈색의 납작한 점(실제 리락쿠마는 광택 없는 자수 느낌).
 //------------------------------------------------------------------------------
 void renderEye() {
     Lighting::applyPlushMaterial();
     Palette::eye();
-    // 실제 리락쿠마처럼 크고 또렷한 눈(살짝 세로로 긴 타원).
+    // 머리 표면에 납작하게 박힌 점(z 로 눌러 평평하게, 광택 X).
     glPushMatrix();
-    glScalef(0.92f, 1.05f, 0.85f);
-    glutSolidSphere(0.155f, 28, 28);
-    glPopMatrix();
-
-    // 흰 하이라이트
-    glPushMatrix();
-    glTranslatef(0.05f, 0.06f, 0.11f);
-    glColor3f(0.95f, 0.95f, 0.95f);
-    glutSolidSphere(0.045f, 14, 14);
+    glScalef(0.95f, 1.05f, 0.5f);
+    glutSolidSphere(0.135f, 28, 28);
     glPopMatrix();
 }
 
@@ -93,24 +85,17 @@ void renderEar() {
 }
 
 //------------------------------------------------------------------------------
-// 머즐(흰 주둥이) + 코+입 텍스처 데칼.
-//  1) 흰 타원체를 그려 둥근 주둥이를 만든다(대부분 머리에 묻힘 -> 앞만 돌출).
-//  2) 그 앞면에 코+입 텍스처를 곡면 데칼로 얹는다. 흰 배경이 머즐과 같은 색이라
-//     사각 경계 없이 어두운 코+입만 자연스럽게 보인다.
+// 얼굴 텍스처 패치: 머리 표면에 거의 밀착하는 곡면에 face_cream.png 를 입힌다.
+//  - 텍스처 배경 = 머리 갈색 -> 패치 사각 경계는 머리색과 섞여 사라짐.
+//  - 가운데 흰 타원 + 코 + 입만 평평하게 보여 실제 리락쿠마처럼 됨(돌출 X).
+//  - 패치 점의 법선은 머리 표면 법선과 같아 조명이 머리와 일치 -> 경계 무봉제.
 //------------------------------------------------------------------------------
-void renderMuzzle() {
-    // --- 1) 흰 머즐 본체 ---
-    Lighting::applyPlushMaterial();
-    Palette::cream();
-    glPushMatrix();
-    glTranslatef(0.0f, kMuzzleCY, kMuzzleCZ);
-    MeshUtils::renderEllipsoid(kMuzzleRX, kMuzzleRY, kMuzzleRZ, 40, 40);
-    glPopMatrix();
-
-    // --- 2) 코+입 텍스처 데칼 (머즐 앞면 곡면을 따라) ---
-    const float halfU = 50.0f * kPi / 180.0f; // 좌우 반각
-    const float halfV = 46.0f * kPi / 180.0f; // 상하 반각
-    const int   N = 22;
+void renderFace() {
+    const float R     = kHeadRadius + 0.01f;          // 표면에서 아주 살짝만
+    const float halfU = kFaceHalfU * kPi / 180.0f;
+    const float halfV = kFaceHalfV * kPi / 180.0f;
+    const float p0    = kFacePitch * kPi / 180.0f;
+    const int   N     = 30;
 
     bool textured = (g_faceTexId != 0);
     if (textured) {
@@ -123,17 +108,15 @@ void renderMuzzle() {
     }
     Lighting::applyPlushMaterial();
 
-    glPushMatrix();
-    glTranslatef(0.0f, kMuzzleCY, kMuzzleCZ);
     for (int i = 0; i < N; ++i) {
         float v0 = (float)i / N;
         float v1 = (float)(i + 1) / N;
-        float th0 = (v0 - 0.5f) * 2.0f * halfV;
-        float th1 = (v1 - 0.5f) * 2.0f * halfV;
+        float th0 = p0 + (v0 - 0.5f) * 2.0f * halfV;
+        float th1 = p0 + (v1 - 0.5f) * 2.0f * halfV;
 
         glBegin(GL_QUAD_STRIP);
         for (int j = 0; j <= N; ++j) {
-            float u = (float)j / N;
+            float u  = (float)j / N;
             float ph = (u - 0.5f) * 2.0f * halfU;
 
             // 위 행 (v1)
@@ -141,34 +124,22 @@ void renderMuzzle() {
                 float dx = cosf(th1) * sinf(ph);
                 float dy = sinf(th1);
                 float dz = cosf(th1) * cosf(ph);
-                // 타원체 위 점 + 바깥으로 살짝(z-fighting 방지)
-                float px = (kMuzzleRX + 0.012f) * dx;
-                float py = (kMuzzleRY + 0.012f) * dy;
-                float pz = (kMuzzleRZ + 0.012f) * dz;
-                float nx = dx / kMuzzleRX, ny = dy / kMuzzleRY, nz = dz / kMuzzleRZ;
-                float nl = sqrtf(nx*nx + ny*ny + nz*nz); if (nl < 1e-6f) nl = 1.0f;
                 if (textured) glTexCoord2f(u, v1);
-                glNormal3f(nx/nl, ny/nl, nz/nl);
-                glVertex3f(px, py, pz);
+                glNormal3f(dx, dy, dz);
+                glVertex3f(R * dx, R * dy, R * dz);
             }
             // 아래 행 (v0)
             {
                 float dx = cosf(th0) * sinf(ph);
                 float dy = sinf(th0);
                 float dz = cosf(th0) * cosf(ph);
-                float px = (kMuzzleRX + 0.012f) * dx;
-                float py = (kMuzzleRY + 0.012f) * dy;
-                float pz = (kMuzzleRZ + 0.012f) * dz;
-                float nx = dx / kMuzzleRX, ny = dy / kMuzzleRY, nz = dz / kMuzzleRZ;
-                float nl = sqrtf(nx*nx + ny*ny + nz*nz); if (nl < 1e-6f) nl = 1.0f;
                 if (textured) glTexCoord2f(u, v0);
-                glNormal3f(nx/nl, ny/nl, nz/nl);
-                glVertex3f(px, py, pz);
+                glNormal3f(dx, dy, dz);
+                glVertex3f(R * dx, R * dy, R * dz);
             }
         }
         glEnd();
     }
-    glPopMatrix();
 
     if (textured) {
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -186,19 +157,19 @@ SceneNode* BuildHead() {
     head->setTranslation(0.0f, 1.5f, 0.0f);   // 머리 중심 (0,1.5,0)
     head->setRenderFunction(renderHeadSphere);
 
-    // cream 머즐(코+입 텍스처)
-    SceneNode* muzzle = new SceneNode();
-    muzzle->setRenderFunction(renderMuzzle);
-    head->addChild(muzzle);
+    // 얼굴(흰 타원+코+입) 텍스처 패치 — 머리 표면에 납작하게
+    SceneNode* face = new SceneNode();
+    face->setRenderFunction(renderFace);
+    head->addChild(face);
 
-    // 눈 (머즐 위쪽 양옆, 살짝 낮고 좁게 -> 실제 리락쿠마 느낌)
+    // 눈 (흰 타원 위쪽 양옆)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.40f, 0.20f, 0.84f);
+    leftEye->setTranslation(-0.40f, 0.12f, 0.91f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.40f, 0.20f, 0.84f);
+    rightEye->setTranslation(0.40f, 0.12f, 0.91f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 

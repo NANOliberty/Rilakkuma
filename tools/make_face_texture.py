@@ -13,8 +13,12 @@ import zlib, struct, math, os
 W = H = 512
 
 # 색상
-BG   = (245, 238, 220)   # #F5EEDC warm white (cream)
-DARK = (51, 38, 31)      # 코/입 자수 색 (0.20,0.15,0.12)
+# 배경 = 머리 갈색과 동일(Palette::brown 0.78,0.62,0.45). 이렇게 하면 텍스처를
+# 얼굴에 납작하게 입혔을 때 사각 경계가 머리색과 섞여 사라지고, 가운데 흰 타원 +
+# 코 + 입만 평평하게 보인다(실제 리락쿠마처럼).
+BG    = (199, 158, 115)  # head brown
+CREAM = (245, 238, 220)  # 흰 cream 타원
+DARK  = (51, 38, 31)     # 코/입
 
 # 프레임버퍼 (RGB)
 buf = bytearray()
@@ -66,15 +70,18 @@ def fill_tri(p0, p1, p2, c):
             for x in range(xl, xr + 1):
                 put(x, y, c)
 
+# --- 흰 cream 타원(작고 납작하게, 가로로 넓은 타원) ---
+CX = 256
+fill_ellipse(CX, 292, 106, 76, CREAM)
+
 # --- 코: 둥근 역삼각형(위 넓고 아래로 좁아지며 끝이 둥근) ---
-NOSE_CX = 256
-fill_ellipse(NOSE_CX, 198, 52, 26, DARK)                 # 위쪽 둥근 캡
-fill_tri((NOSE_CX - 52, 198), (NOSE_CX + 52, 198), (NOSE_CX, 240), DARK)  # 아래로 수렴
-stamp(NOSE_CX, 236, 12, DARK)                            # 끝 둥글게
+fill_ellipse(CX, 252, 44, 21, DARK)                      # 위쪽 둥근 캡
+fill_tri((CX - 44, 252), (CX + 44, 252), (CX, 286), DARK)  # 아래로 수렴
+stamp(CX, 284, 11, DARK)                                 # 끝 둥글게
 
 # --- 코 아래 -> 입 갈림점 수직선 ---
-vline = [(NOSE_CX, y) for y in range(240, 288)]
-stroke_path(vline, 7, DARK)
+vline = [(CX, y) for y in range(285, 320)]
+stroke_path(vline, 6, DARK)
 
 # --- 입: 두 개의 아래로 볼록한 호(∪∪ = 리락쿠마 입) ---
 def lower_arc(cx, cy, r, steps=160):
@@ -84,8 +91,8 @@ def lower_arc(cx, cy, r, steps=160):
         pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
     return pts
 
-stroke_path(lower_arc(214, 286, 43), 7, DARK)   # 왼쪽 입
-stroke_path(lower_arc(298, 286, 43), 7, DARK)   # 오른쪽 입
+stroke_path(lower_arc(220, 318, 38), 6, DARK)   # 왼쪽 입
+stroke_path(lower_arc(292, 318, 38), 6, DARK)   # 오른쪽 입
 
 # ---------- PNG 인코딩 ----------
 def png_chunk(tag, data):
