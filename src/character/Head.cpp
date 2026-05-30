@@ -1,15 +1,15 @@
 //==============================================================================
 // Head.cpp  -  리락쿠마 얼굴부 (A 담당)
 //
-//  좌표(PROJECT_SPEC 5.2.1)는 모두 "월드 기준"으로 주어져 있다. 머리 노드를
-//  (0,1.5,0) 으로 옮기므로, 머리의 자식들은 (월드좌표 - (0,1.5,0)) = 머리
-//  로컬좌표로 배치한다.
+//  좌표(PROJECT_SPEC 5.2.1)는 월드 기준. 머리 노드를 (0,1.5,0) 으로 옮기므로
+//  머리의 자식들은 머리 로컬좌표(= 월드 - (0,1.5,0))로 배치한다.
 //
-//    cream 영역 중심 (0,1.3,0.85) -> 로컬 (0,-0.2,0.85)
-//    왼쪽 눈        (-0.45,1.7,0.85) -> 로컬 (-0.45,0.2,0.85)
-//    오른쪽 눈      (+0.45,1.7,0.85) -> 로컬 (+0.45,0.2,0.85)
-//    왼쪽 귀 중심   (-0.7,2.1,0)     -> 로컬 (-0.7,0.6,0)
-//    오른쪽 귀 중심 (+0.7,2.1,0)     -> 로컬 (+0.7,0.6,0)
+//  v2 수정(스크린샷 피드백 반영):
+//   - cream 영역을 "사각 패치" -> "둥근 흰 머즐(타원체)"로 변경. 대부분 머리에
+//     묻히고 앞면만 살짝 둥글게 돌출 -> 옆에서 봐도 판때기/사각 경계가 안 보임.
+//   - 코+입 텍스처는 머즐 앞면에 곡면 데칼로 매핑. 텍스처의 흰 배경이 머즐
+//     흰색과 같아 데칼 사각 경계가 보이지 않는다(어두운 코+입만 보임).
+//   - 귀 안쪽 노란색을 작고 납작하게 눕혀 옆면 돌출을 줄임.
 //==============================================================================
 #include "Rilakkuma.h"
 #include "../core/SceneNode.h"
@@ -29,90 +29,94 @@ namespace {
 const float kPi = 3.14159265358979323846f;
 const float kHeadRadius = 1.0f;
 
+// 얼굴 텍스처 패치 파라미터.
+//  머리 표면에 거의 밀착(돌출 X)하는 곡면 패치에 face_cream.png 를 입힌다.
+//  텍스처 배경이 머리 갈색과 같아 패치 경계는 보이지 않고, 가운데 흰 타원 +
+//  코 + 입만 평평하게 나타난다(실제 리락쿠마처럼).
+const float kFacePitch = -8.0f;  // 패치 중심을 아래로(도)
+const float kFaceHalfU = 52.0f;  // 좌우 반각(도)
+const float kFaceHalfV = 50.0f;  // 상하 반각(도)
+
 //------------------------------------------------------------------------------
 // 머리 메인 구 (단색 갈색)
 //------------------------------------------------------------------------------
 void renderHeadSphere() {
     Lighting::applyPlushMaterial();
     Palette::brown();
+    // 순수 구로 그린다. (구를 스케일하면 표면 법선이 얼굴 텍스처 패치의 법선과
+    // 어긋나 패치 사각 경계가 음영 차이로 드러난다. 구로 두면 패치가 머리와
+    // 완전히 같은 색·조명이 되어 경계가 사라진다.)
     glutSolidSphere(kHeadRadius, 48, 48);
 }
 
 //------------------------------------------------------------------------------
-// 눈: 검은 작은 구 + 아주 작은 흰 하이라이트
+// 눈: 진한 갈색의 납작한 점(실제 리락쿠마는 광택 없는 자수 느낌).
 //------------------------------------------------------------------------------
 void renderEye() {
     Lighting::applyPlushMaterial();
     Palette::eye();
-    glutSolidSphere(0.13f, 24, 24);
-
-    // 하이라이트 (살짝 +z, +y 로 띄움)
-    glPushMatrix();
-    glTranslatef(0.04f, 0.05f, 0.10f);
-    glColor3f(0.9f, 0.9f, 0.9f);
-    glutSolidSphere(0.035f, 12, 12);
-    glPopMatrix();
+    // 완전한 구로 그린다. 납작한 원반은 머리 옆면 곡률에 가려 한쪽이 잘려
+    // 세로 타원처럼 보였다. 구는 어느 각도에서도 동그란 점으로 보인다.
+    glutSolidSphere(0.105f, 28, 28);
 }
 
 //------------------------------------------------------------------------------
-// 귀: 납작한 갈색 구 + 앞면(+z)에 작은 노란 원 포인트
+// 귀: 납작한 갈색 원반 + 앞면을 채우는 노란 안쪽.
 //------------------------------------------------------------------------------
 void renderEar() {
     Lighting::applyPlushMaterial();
 
-    // 귀 본체 (갈색, 살짝 납작하게)
+    // 귀 본체 (갈색, 납작하고 크게)
     Palette::brown();
     glPushMatrix();
-    glScalef(1.0f, 1.0f, 0.6f);
-    glutSolidSphere(0.42f, 32, 32);
+    glScalef(1.0f, 1.0f, 0.5f);
+    glutSolidSphere(0.46f, 32, 32);
     glPopMatrix();
 
-    // 안쪽 노란 원 포인트 (앞쪽으로 살짝 돌출)
+    // 안쪽 노란색: 작게 + 귀 아래-안쪽으로(원본처럼). 귀가 바깥으로 기울어
+    // 있어 로컬 -y 로 내리면 자연히 안쪽-아래에 위치한다.
     Palette::yellow();
     glPushMatrix();
-    glTranslatef(0.0f, 0.0f, 0.30f);
-    glScalef(1.0f, 1.0f, 0.4f);
-    glutSolidSphere(0.22f, 24, 24);
+    glTranslatef(0.0f, -0.08f, 0.21f);
+    glScalef(0.60f, 0.66f, 0.30f);
+    glutSolidSphere(0.40f, 28, 28);
     glPopMatrix();
 }
 
 //------------------------------------------------------------------------------
-// cream 영역 = 얼굴 앞쪽에 붙는 곡면 텍스처 패치(코+입 자수).
-//
-//  머리 반지름 R 구의 앞면(+z) 일부를 살짝 띄워(R+eps) 패치로 그린다.
-//  patch 중심은 아래로 centerPitch 만큼 내려 입 주변에 오게 한다.
-//  (u,v) in [0,1]^2 -> 패치 전체에 텍스처가 한 번 매핑되므로, 텍스처 중앙의
-//  코+입 자수가 얼굴 정면 중앙에 자연스럽게 표시된다.
+// 얼굴 텍스처 패치: 머리 표면에 거의 밀착하는 곡면에 face_cream.png 를 입힌다.
+//  - 텍스처 배경 = 머리 갈색 -> 패치 사각 경계는 머리색과 섞여 사라짐.
+//  - 가운데 흰 타원 + 코 + 입만 평평하게 보여 실제 리락쿠마처럼 됨(돌출 X).
+//  - 패치 점의 법선은 머리 표면 법선과 같아 조명이 머리와 일치 -> 경계 무봉제.
 //------------------------------------------------------------------------------
-void renderCreamPatch() {
-    const float R = kHeadRadius + 0.015f; // 표면보다 살짝 바깥(z-fighting 방지)
-    const float halfU = 42.0f * kPi / 180.0f; // 좌우 반각
-    const float halfV = 34.0f * kPi / 180.0f; // 상하 반각
-    const float pitch0 = -12.0f * kPi / 180.0f; // 패치 중심을 아래로
-    const int   N = 24; // 분할 수
+void renderFace() {
+    const float R     = kHeadRadius + 0.01f;          // 표면에서 아주 살짝만
+    const float halfU = kFaceHalfU * kPi / 180.0f;
+    const float halfV = kFaceHalfV * kPi / 180.0f;
+    const float p0    = kFacePitch * kPi / 180.0f;
+    const int   N     = 30;
 
     bool textured = (g_faceTexId != 0);
     if (textured) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, g_faceTexId);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        glColor3f(1.0f, 1.0f, 1.0f); // 텍스처 색 그대로(조명만 반영)
+        glColor3f(1.0f, 1.0f, 1.0f);
     } else {
-        Palette::cream(); // 폴백: cream 단색
+        Palette::cream();
     }
     Lighting::applyPlushMaterial();
 
     for (int i = 0; i < N; ++i) {
         float v0 = (float)i / N;
         float v1 = (float)(i + 1) / N;
-        // v -> pitch (위가 v=1)
-        float th0 = pitch0 + (v0 - 0.5f) * 2.0f * halfV;
-        float th1 = pitch0 + (v1 - 0.5f) * 2.0f * halfV;
+        float th0 = p0 + (v0 - 0.5f) * 2.0f * halfV;
+        float th1 = p0 + (v1 - 0.5f) * 2.0f * halfV;
 
         glBegin(GL_QUAD_STRIP);
         for (int j = 0; j <= N; ++j) {
-            float u = (float)j / N;
-            float ph = (u - 0.5f) * 2.0f * halfU; // yaw
+            float u  = (float)j / N;
+            float ph = (u - 0.5f) * 2.0f * halfU;
 
             // 위 행 (v1)
             {
@@ -152,34 +156,32 @@ SceneNode* BuildHead() {
     head->setTranslation(0.0f, 1.5f, 0.0f);   // 머리 중심 (0,1.5,0)
     head->setRenderFunction(renderHeadSphere);
 
-    // cream 영역(코+입 텍스처) — 머리 앞면에 곡면 패치
-    SceneNode* cream = new SceneNode();
-    cream->setRenderFunction(renderCreamPatch);
-    head->addChild(cream);
+    // 얼굴(흰 타원+코+입) 텍스처 패치 — 머리 표면에 납작하게
+    SceneNode* face = new SceneNode();
+    face->setRenderFunction(renderFace);
+    head->addChild(face);
 
-    // 왼쪽 눈 (로컬 -0.45, 0.2, 0.85)
+    // 눈 (완전한 구. 머리 밖으로 살짝 나와 어디서 봐도 동그랗게)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.45f, 0.2f, 0.85f);
+    leftEye->setTranslation(-0.40f, 0.0f, 0.94f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
-    // 오른쪽 눈 (로컬 +0.45, 0.2, 0.85)
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.45f, 0.2f, 0.85f);
+    rightEye->setTranslation(0.40f, 0.0f, 0.94f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 
-    // 왼쪽 귀 (로컬 -0.7, 0.6, 0), 살짝 바깥으로 기울임
+    // 귀 (위쪽 양옆, 크게 + 바깥으로 기울임). 노란색은 각자 안쪽으로 치우치게.
     SceneNode* leftEar = new SceneNode();
-    leftEar->setTranslation(-0.7f, 0.6f, 0.0f);
-    leftEar->setRotation(20.0f, 0.0f, 0.0f, 1.0f);
+    leftEar->setTranslation(-0.72f, 0.66f, 0.0f);
+    leftEar->setRotation(24.0f, 0.0f, 0.0f, 1.0f);
     leftEar->setRenderFunction(renderEar);
     head->addChild(leftEar);
 
-    // 오른쪽 귀 (로컬 +0.7, 0.6, 0)
     SceneNode* rightEar = new SceneNode();
-    rightEar->setTranslation(0.7f, 0.6f, 0.0f);
-    rightEar->setRotation(-20.0f, 0.0f, 0.0f, 1.0f);
+    rightEar->setTranslation(0.72f, 0.66f, 0.0f);
+    rightEar->setRotation(-24.0f, 0.0f, 0.0f, 1.0f);
     rightEar->setRenderFunction(renderEar);
     head->addChild(rightEar);
 

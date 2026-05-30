@@ -15,7 +15,7 @@ class SceneNode;
 
 // PROJECT_SPEC 5.4 컬러 팔레트 (RGB 0~1)
 namespace Palette {
-inline void brown()  { glColor3f(0.78f, 0.62f, 0.45f); } // 머리/몸/팔다리
+inline void brown()  { glColor3f(0.761f, 0.502f, 0.239f); } // 머리/몸/팔다리 (원본 황갈색)
 inline void cream()  { glColor3f(0.96f, 0.92f, 0.85f); } // 귀/얼굴 cream 배경
 inline void yellow() { glColor3f(0.98f, 0.85f, 0.40f); } // 귀 안쪽, 손/발바닥
 inline void belly()  { glColor3f(0.95f, 0.93f, 0.88f); } // 흰 배
