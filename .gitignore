@@ -1,0 +1,25 @@
+# Build output
+build/
+bin/
+obj/
+Debug/
+Release/
+x64/
+ipch/
+
+# NuGet packages (복원으로 받아짐)
+packages/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.opensdf
+*.sdf
+*.aps
+*.opendb
+*.db
+
+# Misc
+*.log
+Thumbs.db
