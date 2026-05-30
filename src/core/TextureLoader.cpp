@@ -1,4 +1,7 @@
 #include "TextureLoader.h"
+#ifndef GL_CLAMP_TO_EDGE
+#define GL_CLAMP_TO_EDGE 0x812F
+#endif
 
 // stb_image 구현부는 이 한 곳에서만 펼친다.
 #define STB_IMAGE_IMPLEMENTATION
