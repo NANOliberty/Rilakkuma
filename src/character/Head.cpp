@@ -55,32 +55,32 @@ void renderHeadSphere() {
 void renderEye() {
     Lighting::applyPlushMaterial();
     Palette::eye();
-    // 머리 표면에 납작하게 박힌 점(z 로 눌러 평평하게, 광택 X).
+    // 머리 표면에 납작하게 박힌 점(z 로 눌러 평평하게, 광택 X). 일러스트처럼 큼.
     glPushMatrix();
-    glScalef(0.95f, 1.05f, 0.5f);
-    glutSolidSphere(0.135f, 28, 28);
+    glScalef(0.95f, 1.08f, 0.5f);
+    glutSolidSphere(0.15f, 28, 28);
     glPopMatrix();
 }
 
 //------------------------------------------------------------------------------
-// 귀: 납작한 갈색 구 + 앞면에 작고 납작한 노란 안쪽 (덜 튀어나오게)
+// 귀: 납작한 갈색 원반 + 앞면을 크게 채우는 노란 안쪽(일러스트처럼 노란색 강조).
 //------------------------------------------------------------------------------
 void renderEar() {
     Lighting::applyPlushMaterial();
 
-    // 귀 본체 (갈색, 납작)
+    // 귀 본체 (갈색, 납작하고 크게)
     Palette::brown();
     glPushMatrix();
-    glScalef(1.0f, 1.0f, 0.55f);
-    glutSolidSphere(0.40f, 32, 32);
+    glScalef(1.0f, 1.0f, 0.5f);
+    glutSolidSphere(0.46f, 32, 32);
     glPopMatrix();
 
-    // 안쪽 노란색: 작고 납작한 오발을 앞면에 살짝만 얹음
+    // 안쪽 노란색: 크고 둥글게 앞면 대부분을 채워 얇은 갈색 테만 남김
     Palette::yellow();
     glPushMatrix();
-    glTranslatef(0.0f, -0.01f, 0.18f);
-    glScalef(0.55f, 0.70f, 0.22f);
-    glutSolidSphere(0.30f, 24, 24);
+    glTranslatef(0.0f, -0.01f, 0.15f);
+    glScalef(0.72f, 0.82f, 0.30f);
+    glutSolidSphere(0.40f, 28, 28);
     glPopMatrix();
 }
 
@@ -162,27 +162,27 @@ SceneNode* BuildHead() {
     face->setRenderFunction(renderFace);
     head->addChild(face);
 
-    // 눈 (흰 타원 위쪽 양옆)
+    // 눈 (흰 타원 위쪽 양옆, 일러스트처럼 넓게 벌림)
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.40f, 0.12f, 0.91f);
+    leftEye->setTranslation(-0.46f, 0.13f, 0.86f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.40f, 0.12f, 0.91f);
+    rightEye->setTranslation(0.46f, 0.13f, 0.86f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 
-    // 귀 (위쪽 양옆, 살짝 바깥으로 기울임)
+    // 귀 (위쪽 양옆, 크게 + 바깥으로 기울임)
     SceneNode* leftEar = new SceneNode();
-    leftEar->setTranslation(-0.7f, 0.62f, 0.0f);
-    leftEar->setRotation(20.0f, 0.0f, 0.0f, 1.0f);
+    leftEar->setTranslation(-0.72f, 0.66f, 0.0f);
+    leftEar->setRotation(24.0f, 0.0f, 0.0f, 1.0f);
     leftEar->setRenderFunction(renderEar);
     head->addChild(leftEar);
 
     SceneNode* rightEar = new SceneNode();
-    rightEar->setTranslation(0.7f, 0.62f, 0.0f);
-    rightEar->setRotation(-20.0f, 0.0f, 0.0f, 1.0f);
+    rightEar->setTranslation(0.72f, 0.66f, 0.0f);
+    rightEar->setRotation(-24.0f, 0.0f, 0.0f, 1.0f);
     rightEar->setRenderFunction(renderEar);
     head->addChild(rightEar);
 
