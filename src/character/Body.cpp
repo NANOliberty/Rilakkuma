@@ -53,7 +53,6 @@
 #include "../core/SceneNode.h"
 #include "../core/MeshUtils.h"
 #include "../core/Lighting.h"
-
 #ifdef _WIN32
 #include <windows.h>
 #endif
@@ -61,40 +60,195 @@
 
 namespace {
 
-// --- 플레이스홀더: 몸통(갈색 타원체) ---
-void renderBodyPlaceholder() {
-    Lighting::applyPlushMaterial();
-    Palette::brown();
-    // 몸통: 머리(r=1.0)와 비슷~약간 큰 정도로. 너무 크면 머리가 작아 보임.
-    MeshUtils::renderEllipsoid(1.20f, 1.30f, 1.15f, 40, 40);
-}
+    // --- 리락쿠마 몸통 ---
+    void renderBodyPlaceholder() {
+        Lighting::applyPlushMaterial();
+        Palette::brown();
+        MeshUtils::renderEllipsoid(0.9f, 1.1f, 0.7f, 40, 40);
+    }
 
-// --- 플레이스홀더: 흰 배 (앞쪽 +z 로 살짝 돌출) ---
-void renderBellyPlaceholder() {
-    Lighting::applyPlushMaterial();
-    Palette::belly();
-    MeshUtils::renderEllipsoid(0.68f, 0.8f, 0.45f, 32, 32);
-}
+    // --- 배 ---
+    void renderBellyPlaceholder() {
+        Lighting::applyPlushMaterial();
+        Palette::belly();
+        MeshUtils::renderEllipsoid(0.55f, 0.65f, 0.30f, 32, 32);
+    }
+
+    // --- 왼쪽 팔 ---
+    void renderLeftArm() {
+        Lighting::applyPlushMaterial();
+        Palette::brown();
+
+        glPushMatrix();
+        glTranslatef(0.0f, -0.55f, 0.0f);
+        MeshUtils::renderCapsule(0.27f, 1.1f);
+        glPopMatrix();
+
+        glPushMatrix();
+        glTranslatef(0.0f, -1.1f, 0.25f);
+        glRotatef(10.0f, 1.0f, 0.0f, 0.0f);
+        Palette::yellow();
+        MeshUtils::renderEllipsoid(0.15f, 0.18f, 0.05f, 16, 16);
+        glPopMatrix();
+    }
+
+    // --- 오른쪽 팔 ---
+    void renderRightArm() {
+        Lighting::applyPlushMaterial();
+        Palette::brown();
+
+        glPushMatrix();
+        glTranslatef(0.0f, -0.55f, 0.0f);
+        MeshUtils::renderCapsule(0.27f, 1.1f);
+        glPopMatrix();
+
+        glPushMatrix();
+        glTranslatef(0.0f, -1.1f, -0.25f);   
+        glRotatef(-10.0f, 1.0f, 0.0f, 0.0f); 
+        Palette::yellow();
+        MeshUtils::renderEllipsoid(0.15f, 0.18f, 0.05f, 16, 16); 
+        glPopMatrix();
+    }
+
+    // --- 다리 (노란 발바닥 통합) ---
+    void renderLeg() {
+        Lighting::applyPlushMaterial();
+        Palette::brown();
+
+        glPushMatrix();
+        glTranslatef(0.0f, -0.45f, 0.0f);
+        MeshUtils::renderCapsule(0.37f, 1.1f);
+        glPopMatrix();
+
+        glPushMatrix();
+        glTranslatef(0.0f, -1.25f, 0.0f);
+        Palette::yellow();
+        MeshUtils::renderEllipsoid(0.25f, 0.15f, 0.30f, 16, 16);
+        glPopMatrix();
+    }
+
+    // --- 등 지퍼 렌더 함수 ---
+    void renderZipper() {
+        Lighting::applyPlushMaterial();
+        Palette::zipper();
+
+        for (int i = 0; i < 15; ++i) {
+            glPushMatrix();
+            float yPos = 0.55f - i * 0.075f;
+
+            float zCurveOffset = (yPos * yPos) * 0.30f;
+            float zPos = -0.69f + zCurveOffset;
+
+            glTranslatef(0.0f, yPos, zPos);
+
+            // 세로선 (지퍼 레일)
+            glPushMatrix();
+            float tiltAngle = yPos * 35.0f;
+            glRotatef(tiltAngle, 1.0f, 0.0f, 0.0f);
+            MeshUtils::renderCapsule(0.012f, 0.085f);
+            glPopMatrix();
+
+            // 가로선 (지퍼 이빨)
+            glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+            glutSolidTorus(0.015f, 0.045f, 10, 16);
+            glPopMatrix();
+        }
+
+        // 2. 지퍼 손잡이
+        glPushMatrix();
+        float sliderY = 0.62f;
+
+        float sliderZ = -0.69f + ((sliderY * sliderY) * 0.30f) - 0.04f;
+        glTranslatef(0.0f, sliderY, sliderZ);
+
+        glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
+
+        glutSolidCube(0.07f);
+
+        glTranslatef(0.0f, -0.07f, 0.0f);
+        glutSolidTorus(0.015f, 0.05f, 10, 16);
+        glPopMatrix();
+    }
 
 } // namespace
 
 SceneNode* BuildBody() {
-    SceneNode* body = new SceneNode();
-    body->setRenderFunction(renderBodyPlaceholder);
 
-    // 흰 배 (앞면)
+    // 하체 노드
+    SceneNode* root = new SceneNode();
+
+    // 상체 노드
+    SceneNode* torso = new SceneNode();
+    torso->setRenderFunction(renderBodyPlaceholder);
+    torso->setRotation(-15.0f, 0.0f, 0.0f, 1.0f);
+    root->addChild(torso);
+
+    // --- 흰 배 (상체에 부착) ---
     SceneNode* belly = new SceneNode();
-    belly->setTranslation(0.0f, -0.05f, 0.95f);
+    belly->setTranslation(0.0f, -0.1f, 0.50f);
     belly->setRenderFunction(renderBellyPlaceholder);
-    body->addChild(belly);
+    torso->addChild(belly);
 
-    // TODO(B): 아래를 채우세요 —
-    //   - 왼팔(번쩍 든 팔)  : 어깨(-1.2,0.5,0) + Z130°, X-15°
-    //   - 오른팔(배쪽 팔)   : 어깨(+1.2,0.5,0) + Z-25°, X+25°
-    //   - 왼/오른 다리      : (∓0.6,-1.2,0) + Z∓10°, 발바닥 노란 타원
-    //   - 손/발바닥 노란 타원
-    //   - 등 지퍼(토러스 반복) + 꼬리(작은 구, z=-1.4)
-    //   docs/B_GUIDE.md 의 코드 스니펫을 참고하면 바로 붙일 수 있습니다.
+    // --- 왼쪽 팔 조립 (상체에 부착되어 같이 회전) ---
+    SceneNode* leftShoulder = new SceneNode();
+    leftShoulder->setTranslation(-0.9f, 0.7f, 0.0f);
+    leftShoulder->setRotation(-140.0f, 0.0f, 0.0f, 1.0f);
 
-    return body;
+    SceneNode* leftArmX = new SceneNode();
+    leftArmX->setRotation(-20.0f, 1.0f, 0.0f, 0.0f);
+    leftArmX->setRenderFunction(renderLeftArm);
+    leftShoulder->addChild(leftArmX);
+    torso->addChild(leftShoulder);
+
+    // --- 오른쪽 팔 조립 (상체에 부착되어 같이 회전) ---
+    SceneNode* rightShoulder = new SceneNode();
+    rightShoulder->setTranslation(0.9f, 0.7f, 0.0f);
+    rightShoulder->setRotation(-50.0f, 0.0f, 0.0f, 1.0f);
+
+    SceneNode* rightArmX = new SceneNode();
+    rightArmX->setRotation(-70.0f, 1.0f, 0.0f, 0.0f);
+    rightArmX->setRenderFunction(renderRightArm);
+    rightShoulder->addChild(rightArmX);
+    torso->addChild(rightShoulder);
+
+    // --- 꼬리 조립 (상체에 부착) ---
+    SceneNode* tail = new SceneNode();
+    tail->setTranslation(0.0f, -0.5f, -0.74f);
+    tail->setRenderFunction([]() {
+        Lighting::applyPlushMaterial();
+        Palette::brown(); 
+        glutSolidSphere(0.22f, 24, 24);
+        });
+    torso->addChild(tail);
+
+    // --- 등 지퍼 조립 (상체에 부착) ---
+    SceneNode* zipper = new SceneNode();
+    zipper->setRenderFunction(renderZipper);
+    torso->addChild(zipper);
+
+    // =========================================================================
+    // 하체 조립: 지면 수평 유지를 위해 상체(torso)가 아닌 최상위(root)에 직속 연결
+    // =========================================================================
+
+    // --- 왼쪽 다리 ---
+    SceneNode* leftLegPivot = new SceneNode();
+    leftLegPivot->setTranslation(-0.55f, -0.7f, 0.15f);
+    leftLegPivot->setRotation(-40.0f, 0.0f, 0.0f, 1.0f);
+
+    SceneNode* leftLegMesh = new SceneNode();
+    leftLegMesh->setRenderFunction(renderLeg);
+    leftLegPivot->addChild(leftLegMesh);
+    root->addChild(leftLegPivot);
+
+    // --- 오른쪽 다리 ---
+    SceneNode* rightLegPivot = new SceneNode();
+    rightLegPivot->setTranslation(0.55f, -0.7f, 0.15f);
+    rightLegPivot->setRotation(40.0f, 0.0f, 0.0f, 1.0f);
+
+    SceneNode* rightLegMesh = new SceneNode();
+    rightLegMesh->setRenderFunction(renderLeg);
+    rightLegPivot->addChild(rightLegMesh);
+    root->addChild(rightLegPivot);
+
+    return root;
 }
