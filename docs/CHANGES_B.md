@@ -15,6 +15,8 @@
 ## 2. 배경 및 가구 (src/scene/Background.cpp) 구현 사항
 
 **첨부한 사진을 기준으로 하여 간단한 요소만 살려 배경을 구현했습니다.**
+<img width="736" height="503" alt="리락쿠마 배경 아이디어" src="https://github.com/user-attachments/assets/b2e29d80-692d-467a-90b8-5b851c541f68" />
+
 
 - 바닥: 마룻바닥 에셋 적용
 - 우측 베란다 통창: 우선은 파랗게만 구현
