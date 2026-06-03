@@ -6,6 +6,10 @@
 
 ## 1. 몸통부 (src/character/Body.cpp) 구현 사항
 
+<img width="571" height="347" alt="image" src="https://github.com/user-attachments/assets/87ffc102-883e-4b81-a997-29a241350478" />
+<img width="515" height="410" alt="image" src="https://github.com/user-attachments/assets/0a558fe1-4b69-4ce7-8652-28c0cf6d12d9" />
+<img width="454" height="302" alt="image" src="https://github.com/user-attachments/assets/4629bcc3-6d19-4116-9d07-fec8180b1c83" />
+
 - **포즈 및 공중부양 교정**: 상체를 기울이면 다리가 부자연스럽게 함께 돌아가는 것을 방지하기 위해 상체와 양 팔/ 다리를 별도로 고정한 후 상체와 양팔 파츠만 기울기 적용했습니다. 다리는 쩍벌 자세를 유지하며 지면에 닿은 상태입니다. 또한 비율을 위해 몸통 크기, 팔다리 굵기 및 길이를 조절하며 공중에 뜬 신체를 바닥에 붙여 현재 머리와 잠시 분리된 상태입니다.
 - **팔/다리 및 디테일**: 팔과 다리의 노란 포인트의 위치가 일정하지 않아 개별로 세부 위치 조정을 하였습니다.
 - **곡면 지퍼 및 슬라이더**: 몸체가 둥글어 지퍼 및 슬라이더가 등에 묻혀버리는 상황이 발생해 구간마다 점점 굽어지도록 구현했습니다.
