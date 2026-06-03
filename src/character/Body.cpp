@@ -172,10 +172,12 @@ namespace {
 
 } // namespace
 
+
 SceneNode* BuildBody() {
 
     // 하체 노드
     SceneNode* root = new SceneNode();
+    root->setTranslation(0.0f, -0.55f, 0.0f);
 
     // 상체 노드
     SceneNode* torso = new SceneNode();
@@ -189,7 +191,7 @@ SceneNode* BuildBody() {
     belly->setRenderFunction(renderBellyPlaceholder);
     torso->addChild(belly);
 
-    // --- 왼쪽 팔 조립 (상체에 부착되어 같이 회전) ---
+    // --- 왼쪽 팔 조립 ---
     SceneNode* leftShoulder = new SceneNode();
     leftShoulder->setTranslation(-0.9f, 0.7f, 0.0f);
     leftShoulder->setRotation(-140.0f, 0.0f, 0.0f, 1.0f);
@@ -200,7 +202,7 @@ SceneNode* BuildBody() {
     leftShoulder->addChild(leftArmX);
     torso->addChild(leftShoulder);
 
-    // --- 오른쪽 팔 조립 (상체에 부착되어 같이 회전) ---
+    // --- 오른쪽 팔 조립 ---
     SceneNode* rightShoulder = new SceneNode();
     rightShoulder->setTranslation(0.9f, 0.7f, 0.0f);
     rightShoulder->setRotation(-50.0f, 0.0f, 0.0f, 1.0f);
@@ -211,24 +213,20 @@ SceneNode* BuildBody() {
     rightShoulder->addChild(rightArmX);
     torso->addChild(rightShoulder);
 
-    // --- 꼬리 조립 (상체에 부착) ---
+    // --- 꼬리 조립 ---
     SceneNode* tail = new SceneNode();
     tail->setTranslation(0.0f, -0.5f, -0.74f);
     tail->setRenderFunction([]() {
         Lighting::applyPlushMaterial();
-        Palette::brown(); 
+        Palette::brown();
         glutSolidSphere(0.22f, 24, 24);
         });
     torso->addChild(tail);
 
-    // --- 등 지퍼 조립 (상체에 부착) ---
+    // --- 등 지퍼 조립 ---
     SceneNode* zipper = new SceneNode();
     zipper->setRenderFunction(renderZipper);
     torso->addChild(zipper);
-
-    // =========================================================================
-    // 하체 조립: 지면 수평 유지를 위해 상체(torso)가 아닌 최상위(root)에 직속 연결
-    // =========================================================================
 
     // --- 왼쪽 다리 ---
     SceneNode* leftLegPivot = new SceneNode();
