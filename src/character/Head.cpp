@@ -33,7 +33,7 @@ const float kHeadRadius = 1.0f;
 //  머리 표면에 거의 밀착(돌출 X)하는 곡면 패치에 face_cream.png 를 입힌다.
 //  텍스처 배경이 머리 갈색과 같아 패치 경계는 보이지 않고, 가운데 흰 타원 +
 //  코 + 입만 평평하게 나타난다(실제 리락쿠마처럼).
-const float kFacePitch = -8.0f;  // 패치 중심을 아래로(도)
+const float kFacePitch = -13.0f;  // 패치 중심을 아래로(도) — 코+입을 얼굴 아래쪽으로
 const float kFaceHalfU = 52.0f;  // 좌우 반각(도)
 const float kFaceHalfV = 50.0f;  // 상하 반각(도)
 
@@ -153,7 +153,10 @@ void renderFace() {
 //------------------------------------------------------------------------------
 SceneNode* BuildHead() {
     SceneNode* head = new SceneNode();
-    head->setTranslation(0.0f, 1.5f, 0.0f);   // 머리 중심 (0,1.5,0)
+    head->setTranslation(0.0f, 1.42f, 0.0f);   // 머리 중심을 살짝 아래로 (1.5 -> 1.42)
+    // 세로로 살짝 길쭉한 타원형 머리. 노드 전체를 스케일하므로 얼굴 패치/눈/귀가
+    // 함께 늘어나 패치 경계가 어긋나지 않는다(렌더 시 자식이 부모 스케일 상속).
+    head->setScale(1.0f, 1.08f, 0.98f);
     head->setRenderFunction(renderHeadSphere);
 
     // 얼굴(흰 타원+코+입) 텍스처 패치 — 머리 표면에 납작하게
@@ -162,13 +165,14 @@ SceneNode* BuildHead() {
     head->addChild(face);
 
     // 눈 (완전한 구. 머리 밖으로 살짝 나와 어디서 봐도 동그랗게)
+    //  코+입(패치)을 내린 만큼 눈도 함께 살짝 내려 얼굴 전체가 아래쪽에 모이게.
     SceneNode* leftEye = new SceneNode();
-    leftEye->setTranslation(-0.40f, 0.0f, 0.94f);
+    leftEye->setTranslation(-0.40f, -0.10f, 0.94f);
     leftEye->setRenderFunction(renderEye);
     head->addChild(leftEye);
 
     SceneNode* rightEye = new SceneNode();
-    rightEye->setTranslation(0.40f, 0.0f, 0.94f);
+    rightEye->setTranslation(0.40f, -0.10f, 0.94f);
     rightEye->setRenderFunction(renderEye);
     head->addChild(rightEye);
 
