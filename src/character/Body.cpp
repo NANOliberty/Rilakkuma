@@ -109,7 +109,7 @@ namespace {
         Lighting::applyPlushMaterial();
         Palette::brown();
         const float rx = 1.15f, rz = 0.92f, halfH = 1.18f;
-        const float cap = 0.86f;   // < rx → 약간 납작한 돔 = 원기둥 느낌
+        const float cap = 1.1f;   // < rx → 약간 납작한 돔 = 원기둥 느낌
         glPushMatrix();
         glScalef(1.0f, 1.0f, rz / rx);                 // 앞뒤를 납작하게(타원 단면)
         renderRoundedColumn(rx, rx, 2.0f * halfH, cap, cap);
@@ -151,9 +151,9 @@ namespace {
         //  타원을 살짝 돌출시켜 정면에서 동그란 패드가 그냥 보이게(눕히지 않음).
         //  z(앞으로 미는 양)가 클수록 더 튀어나온다.
         glPushMatrix();
-        glTranslatef(0.0f, -0.92f, 0.23f);
+        glTranslatef(0.0f, -0.9f, 0.2f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.17f, 0.21f, 0.12f, 28, 20);
+        MeshUtils::renderEllipsoid(0.17f, 0.21f, 0.14f, 28, 20);
         glPopMatrix();
     }
 
@@ -233,7 +233,7 @@ SceneNode* BuildBody() {
 
     // --- 흰 배 (몸통 앞면 아래-가운데. 갈색이 둘레로 보이게 적당한 크기) ---
     SceneNode* belly = new SceneNode();
-    belly->setTranslation(0.0f, 0.05f, 0.6f);
+    belly->setTranslation(0.0f, 0.05f, 0.65f);
     belly->setRenderFunction(renderBelly);
     torso->addChild(belly);
 
