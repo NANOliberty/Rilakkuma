@@ -104,28 +104,28 @@ namespace {
         Palette::brown();
         renderPlushLimb(0.31f, 0.31f, 1.12f);
 
-        // 손바닥(노란 패드) — 팔 끝 앞면에 둥근 타원. 두 번째 사진처럼 과하지
-        //  않은 크기로 끝에 예쁘게. X축으로 눕혀 손바닥 면이 앞을 향하게.
+        // 손바닥(노란 패드) — 귀 안쪽 노란 부분과 같은 방식: 팔 '앞면'에 납작한
+        //  타원을 살짝 돌출시켜 정면에서 동그란 패드가 그냥 보이게(눕히지 않음).
         glPushMatrix();
-        glTranslatef(0.0f, -1.08f, 0.13f);
-        glRotatef(72.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, -0.92f, 0.17f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.19f, 0.22f, 0.08f, 28, 20);
+        MeshUtils::renderEllipsoid(0.17f, 0.21f, 0.12f, 28, 20);
         glPopMatrix();
     }
 
-    // --- 다리 (통통한 타원체 + 끝에 노란 발바닥) ---
+    // --- 다리 (통통하고 긴 타원체 + 앞면 노란 발바닥 패드) ---
     void renderLeg() {
         Lighting::applyPlushMaterial();
         Palette::brown();
-        renderPlushLimb(0.38f, 0.40f, 1.10f);
+        renderPlushLimb(0.40f, 0.42f, 1.20f);
 
-        // 노란 발바닥 — 발 끝 앞-아래에 둥근 타원. 두 번째 사진의 패드 위치 참고.
+        // 노란 발바닥 — 팔과 같은 방식으로 발 '앞면'에 납작한 타원을 돌출.
+        //  발은 아래를 향하므로 살짝만 아래로 기울여(30°) 발바닥처럼 보이게.
         glPushMatrix();
-        glTranslatef(0.0f, -1.06f, 0.15f);
-        glRotatef(64.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, -1.06f, 0.20f);
+        glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.22f, 0.26f, 0.09f, 28, 20);
+        MeshUtils::renderEllipsoid(0.22f, 0.26f, 0.12f, 28, 20);
         glPopMatrix();
     }
 
@@ -198,20 +198,21 @@ SceneNode* BuildBody() {
     //  Rz(θ) 적용 시 끝점 방향 = (sinθ, -cosθ). 왼쪽(-X)은 θ<0, 오른쪽(+X)은 θ>0
     //  으로 두면 좌우 대칭으로 벌어진다.
 
-    // 왼팔: 위로-왼쪽 (Z -132° → 수직에서 48° 벌어진 만세). X -8°로 손바닥 살짝 앞.
+    // 왼팔: 위로-왼쪽 (Z -128°). 어깨를 몸 안쪽으로(±0.78) 깊이 넣어 팔 뿌리가
+    //  몸통에 묻혀 '떨어져 보이는' 틈이 없게. X -8°로 손바닥 살짝 앞.
     SceneNode* leftShoulder = new SceneNode();
-    leftShoulder->setTranslation(-0.92f, 0.58f, 0.08f);
-    leftShoulder->setRotation(-132.0f, 0.0f, 0.0f, 1.0f);
+    leftShoulder->setTranslation(-0.78f, 0.52f, 0.12f);
+    leftShoulder->setRotation(-128.0f, 0.0f, 0.0f, 1.0f);
     SceneNode* leftArmX = new SceneNode();
     leftArmX->setRotation(-8.0f, 1.0f, 0.0f, 0.0f);
     leftArmX->setRenderFunction(renderArm);
     leftShoulder->addChild(leftArmX);
     torso->addChild(leftShoulder);
 
-    // 오른팔: 위로-오른쪽 (Z +132°). 좌우 대칭.
+    // 오른팔: 위로-오른쪽 (Z +128°). 좌우 대칭.
     SceneNode* rightShoulder = new SceneNode();
-    rightShoulder->setTranslation(0.92f, 0.58f, 0.08f);
-    rightShoulder->setRotation(132.0f, 0.0f, 0.0f, 1.0f);
+    rightShoulder->setTranslation(0.78f, 0.52f, 0.12f);
+    rightShoulder->setRotation(128.0f, 0.0f, 0.0f, 1.0f);
     SceneNode* rightArmX = new SceneNode();
     rightArmX->setRotation(-8.0f, 1.0f, 0.0f, 0.0f);
     rightArmX->setRenderFunction(renderArm);
@@ -233,23 +234,22 @@ SceneNode* BuildBody() {
     zipper->setRenderFunction(renderZipper);
     torso->addChild(zipper);
 
-    // --- 양다리: 만세 포즈에 맞춰 아래로-바깥으로 시원하게 벌림 (좌우 대칭) ---
-    //  왼다리 Z -30° / 오른다리 Z +30° 로 A자 스탠스. 발끝의 노란 발바닥이 살짝
-    //  앞을 보도록 발을 약간 앞으로(X -14°) 든다.
+    // --- 양다리: 만세에 맞춰 아래로-바깥으로 벌리되, 벌림을 줄이고(±22°) 고관절을
+    //     몸 안쪽(±0.44)으로 넣어 다리 뿌리가 몸통에 묻혀 자연스럽게 이어지게. ---
     SceneNode* leftLegPivot = new SceneNode();
-    leftLegPivot->setTranslation(-0.50f, -0.74f, 0.12f);
-    leftLegPivot->setRotation(-30.0f, 0.0f, 0.0f, 1.0f);
+    leftLegPivot->setTranslation(-0.44f, -0.70f, 0.12f);
+    leftLegPivot->setRotation(-22.0f, 0.0f, 0.0f, 1.0f);
     SceneNode* leftLegX = new SceneNode();
-    leftLegX->setRotation(-14.0f, 1.0f, 0.0f, 0.0f);
+    leftLegX->setRotation(-12.0f, 1.0f, 0.0f, 0.0f);
     leftLegX->setRenderFunction(renderLeg);
     leftLegPivot->addChild(leftLegX);
     root->addChild(leftLegPivot);
 
     SceneNode* rightLegPivot = new SceneNode();
-    rightLegPivot->setTranslation(0.50f, -0.74f, 0.12f);
-    rightLegPivot->setRotation(30.0f, 0.0f, 0.0f, 1.0f);
+    rightLegPivot->setTranslation(0.44f, -0.70f, 0.12f);
+    rightLegPivot->setRotation(22.0f, 0.0f, 0.0f, 1.0f);
     SceneNode* rightLegX = new SceneNode();
-    rightLegX->setRotation(-14.0f, 1.0f, 0.0f, 0.0f);
+    rightLegX->setRotation(-12.0f, 1.0f, 0.0f, 0.0f);
     rightLegX->setRenderFunction(renderLeg);
     rightLegPivot->addChild(rightLegX);
     root->addChild(rightLegPivot);
