@@ -64,14 +64,56 @@
 
 namespace {
 
+    //--------------------------------------------------------------------------
+    //  둥근 기둥 (원기둥 느낌)
+    //
+    //  가운데에 '곧은 옆면' 구간(원기둥)을 두고 위/아래만 둥근 캡으로 마감한다.
+    //  순수 타원체(달걀)는 옆면이 계속 휘어 둥글둥글하기만 한데, 가운데 직선
+    //  구간을 넣으면 살짝 원기둥 같은 단단한 느낌이 난다. 캡 높이를 반경보다
+    //  작게 두면(=납작한 돔) 더 원기둥처럼, 반경과 같으면 반구(=캡슐)가 된다.
+    //
+    //   rBot/rTop     : 아래/위 단면 반경 (다르면 테이퍼)
+    //   length        : 전체 길이 (중심이 원점, ±length/2)
+    //   capBot/capTop : 아래/위 둥근 캡의 세로 높이
+    //--------------------------------------------------------------------------
+    void renderRoundedColumn(float rBot, float rTop, float length,
+                             float capBot, float capTop) {
+        float cylH = length - capTop - capBot;
+        if (cylH < 0.0f) cylH = 0.0f;
+
+        // 가운데 곧은(테이퍼) 옆면
+        if (cylH > 1e-4f)
+            MeshUtils::renderTaperedEllipticCylinder(rBot, rBot, rTop, rTop, cylH);
+
+        // 위 캡 (반구를 세로 capTop 으로 눌러 부드럽게)
+        glPushMatrix();
+        glTranslatef(0.0f, cylH * 0.5f, 0.0f);
+        glScalef(1.0f, capTop / rTop, 1.0f);
+        MeshUtils::renderHemisphere(rTop, 32, 16);
+        glPopMatrix();
+
+        // 아래 캡 (뒤집어서 볼록 아래로)
+        glPushMatrix();
+        glTranslatef(0.0f, -cylH * 0.5f, 0.0f);
+        glScalef(1.0f, capBot / rBot, 1.0f);
+        glRotatef(180.0f, 1.0f, 0.0f, 0.0f);
+        MeshUtils::renderHemisphere(rBot, 32, 16);
+        glPopMatrix();
+    }
+
     // --- 리락쿠마 몸통 ---
-    //  넓고 둥근 타원체. 머리(반지름 1.0)와 목폭이 맞도록 폭을 키우고(1.0),
-    //  세로는 살짝만 길게(1.05) 해서 통통한 인형 비례를 만든다. (이전: 0.9×1.1×0.7
-    //  → 좁고 길쭉해 머리와 어긋나 보였다.)
+    //  넓고 둥근 몸통에 '살짝 원기둥 느낌'을 주려고, 가운데 곧은 옆면 구간 +
+    //  위/아래 둥근 캡(반경보다 낮은 납작 돔)으로 만든다. 최대 반경/전체 높이는
+    //  기존 타원체와 같게 유지 → 배/지퍼/팔다리 부착 좌표는 그대로 맞는다.
     void renderBody() {
         Lighting::applyPlushMaterial();
         Palette::brown();
-        MeshUtils::renderEllipsoid(1.15f, 1.18f, 0.92f, 48, 40);
+        const float rx = 1.15f, rz = 0.92f, halfH = 1.18f;
+        const float cap = 0.86f;   // < rx → 약간 납작한 돔 = 원기둥 느낌
+        glPushMatrix();
+        glScalef(1.0f, 1.0f, rz / rx);                 // 앞뒤를 납작하게(타원 단면)
+        renderRoundedColumn(rx, rx, 2.0f * halfH, cap, cap);
+        glPopMatrix();
     }
 
     // --- 배 (흰 타원, 몸통 앞면에 납작하게) ---
@@ -82,19 +124,20 @@ namespace {
     }
 
     //--------------------------------------------------------------------------
-    //  통통한 봉제 팔다리 핵심
-    //
-    //  '알약(캡슐)'처럼 보이던 이유 = 가운데 직선 원기둥 구간 때문. 직선 구간이
-    //  전혀 없는 '길쭉한 타원체' 한 덩어리로 그리면 어느 각도에서도 둥글둥글한
-    //  인형 팔다리가 된다. 로컬 원점(0,0,0)을 어깨/고관절에 두고 -y 로 내려온다.
+    //  통통한 봉제 팔다리.  '살짝 원기둥 느낌'을 위해 가운데 곧은 구간 + 둥근
+    //  끝으로 만든다(renderRoundedColumn). 어깨쪽(위)은 살짝 가늘고 끝(아래,
+    //  손/발)은 통통하게 약간 테이퍼. 로컬 원점(0,0,0)을 어깨/고관절에 두고
+    //  -y 로 length 만큼 내려온다.
     //
     //   bulkRX/RZ : 굵기(좌우/앞뒤 반경)   length : 팔다리 길이(원점→끝)
     //--------------------------------------------------------------------------
     void renderPlushLimb(float bulkRX, float bulkRZ, float length) {
-        // 길쭉한 타원체. 중심을 length/2 만큼 내려 위 끝이 원점(어깨)에 닿게.
         glPushMatrix();
-        glTranslatef(0.0f, -length * 0.5f, 0.0f);
-        MeshUtils::renderEllipsoid(bulkRX, length * 0.5f, bulkRZ, 32, 28);
+        glScalef(1.0f, 1.0f, bulkRZ / bulkRX);         // 앞뒤 두께 보정
+        glTranslatef(0.0f, -length * 0.5f, 0.0f);      // 위 끝이 원점(어깨)에 오게
+        //  아래(끝): 반경 rx, 둥근 캡 / 위(어깨): 살짝 가늘고 납작한 캡
+        renderRoundedColumn(bulkRX, bulkRX * 0.88f, length,
+                            bulkRX * 0.92f, bulkRX * 0.78f);
         glPopMatrix();
     }
 
@@ -106,8 +149,9 @@ namespace {
 
         // 손바닥(노란 패드) — 귀 안쪽 노란 부분과 같은 방식: 팔 '앞면'에 납작한
         //  타원을 살짝 돌출시켜 정면에서 동그란 패드가 그냥 보이게(눕히지 않음).
+        //  z(앞으로 미는 양)가 클수록 더 튀어나온다.
         glPushMatrix();
-        glTranslatef(0.0f, -0.92f, 0.17f);
+        glTranslatef(0.0f, -0.92f, 0.23f);
         Palette::yellow();
         MeshUtils::renderEllipsoid(0.17f, 0.21f, 0.12f, 28, 20);
         glPopMatrix();
@@ -122,7 +166,7 @@ namespace {
         // 노란 발바닥 — 팔과 같은 방식으로 발 '앞면'에 납작한 타원을 돌출.
         //  발은 아래를 향하므로 살짝만 아래로 기울여(30°) 발바닥처럼 보이게.
         glPushMatrix();
-        glTranslatef(0.0f, -1.06f, 0.20f);
+        glTranslatef(0.0f, -1.06f, 0.31f);
         glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
         Palette::yellow();
         MeshUtils::renderEllipsoid(0.22f, 0.26f, 0.12f, 28, 20);
