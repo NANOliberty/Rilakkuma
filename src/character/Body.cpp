@@ -175,10 +175,10 @@ namespace {
 
 SceneNode* BuildBody() {
 
-    // 몸 루트. 살짝 아래로 내려 머리(아래 끝 y=0.5)가 몸통 위(y≈0.45)에 자연스럽게
-    // 묻히도록 한다 → 목 이음매가 안 보임.
+    // 몸 루트. 몸통 윗면(y = -0.45 + 1.05 = 0.60)이 머리 아랫면(y = 0.5)을 0.10
+    // 넘어 올라와 머리와 겹치게 한다 → 목이 뜨지 않고 자연스럽게 이어짐.
     SceneNode* root = new SceneNode();
-    root->setTranslation(0.0f, -0.60f, 0.0f);
+    root->setTranslation(0.0f, -0.45f, 0.0f);
 
     // 상체(몸통). 이전엔 -15° 기울여서 머리(안 기울어짐)와 따로 놀았다 → 똑바로
     // 세워 머리·몸·팔이 한 축으로 정렬되게 한다.
@@ -205,13 +205,15 @@ SceneNode* BuildBody() {
     torso->addChild(leftShoulder);
 
     // --- 오른팔: 배 쪽으로 내려 살짝 안고 있는 자세 ---
-    //  Z -30°(아래+안쪽) + X +38°(앞으로 당겨 배 위에 손이 오게).
+    //  Z -30°(아래+안쪽) + X -38°(앞으로 당겨 배 위에 손이 오게).
+    //  ※ X 부호 주의: -Y 로 내려온 팔을 +X축 기준 음각으로 돌려야 손이 앞(+z)으로
+    //    온다. 양각이면 뒤(-z)로 돌아가 몸통 뒤에 숨어 '팔이 사라진' 것처럼 보인다.
     SceneNode* rightShoulder = new SceneNode();
     rightShoulder->setTranslation(0.82f, 0.45f, 0.05f);
     rightShoulder->setRotation(-30.0f, 0.0f, 0.0f, 1.0f);
 
     SceneNode* rightArmX = new SceneNode();
-    rightArmX->setRotation(38.0f, 1.0f, 0.0f, 0.0f);
+    rightArmX->setRotation(-38.0f, 1.0f, 0.0f, 0.0f);
     rightArmX->setRenderFunction(renderArm);
     rightShoulder->addChild(rightArmX);
     torso->addChild(rightShoulder);
