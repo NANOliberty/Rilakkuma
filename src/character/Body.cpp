@@ -169,8 +169,8 @@ namespace {
         //  [조절] y(-1.14): 작을수록 발끝, z(0.25): 클수록 앞 돌출, 회전(53):
         //         클수록 더 아래(바닥)를 향함.
         glPushMatrix();
-        glTranslatef(0.0f, -1.14f, 0.25f);
-        glRotatef(53.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, -1.14f, 0.1f);
+        glRotatef(70.0f, 35.0f, 0.0f, 0.0f);
         Palette::yellow();
         MeshUtils::renderEllipsoid(0.24f, 0.27f, 0.11f, 28, 20);
         glPopMatrix();
