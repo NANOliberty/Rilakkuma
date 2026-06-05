@@ -156,7 +156,7 @@ SceneNode* BuildHead() {
     head->setTranslation(0.0f, 1.42f, 0.0f);   // 머리 중심을 살짝 아래로 (1.5 -> 1.42)
     // 세로로 살짝 길쭉한 타원형 머리. 노드 전체를 스케일하므로 얼굴 패치/눈/귀가
     // 함께 늘어나 패치 경계가 어긋나지 않는다(렌더 시 자식이 부모 스케일 상속).
-    head->setScale(1.0f, 1.08f, 0.98f);
+    head->setScale(1.4f, 1.08f, 1.08f);
     head->setRenderFunction(renderHeadSphere);
 
     // 얼굴(흰 타원+코+입) 텍스처 패치 — 머리 표면에 납작하게

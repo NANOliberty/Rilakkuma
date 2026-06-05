@@ -189,7 +189,7 @@ SceneNode* BuildBody() {
 
     // --- 흰 배 (몸통 앞면 아래-가운데. 갈색이 둘레로 보이게 적당한 크기) ---
     SceneNode* belly = new SceneNode();
-    belly->setTranslation(0.0f, -0.22f, 0.68f);
+    belly->setTranslation(0.0f, 0.05f, 0.6f);
     belly->setRenderFunction(renderBelly);
     torso->addChild(belly);
 
