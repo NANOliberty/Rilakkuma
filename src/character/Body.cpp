@@ -78,7 +78,7 @@ namespace {
     void renderBelly() {
         Lighting::applyPlushMaterial();
         Palette::belly();
-        MeshUtils::renderEllipsoid(0.70f, 0.80f, 0.40f, 36, 32);
+        MeshUtils::renderEllipsoid(0.62f, 0.74f, 0.39f, 36, 32);
     }
 
     //--------------------------------------------------------------------------
@@ -102,39 +102,30 @@ namespace {
     void renderArm() {
         Lighting::applyPlushMaterial();
         Palette::brown();
-        renderPlushLimb(0.32f, 0.32f, 1.15f);
+        renderPlushLimb(0.31f, 0.31f, 1.12f);
 
-        // 손바닥(노란 패드) — 팔 끝 앞면에 크고 둥근 납작 타원.
-        //  X축으로 눕혀 손바닥 면이 앞(+z)을 향하게 → 정면에서 패드가 잘 보임.
+        // 손바닥(노란 패드) — 팔 끝 앞면에 둥근 타원. 두 번째 사진처럼 과하지
+        //  않은 크기로 끝에 예쁘게. X축으로 눕혀 손바닥 면이 앞을 향하게.
         glPushMatrix();
-        glTranslatef(0.0f, -1.09f, 0.14f);
-        glRotatef(78.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, -1.08f, 0.13f);
+        glRotatef(72.0f, 1.0f, 0.0f, 0.0f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.22f, 0.24f, 0.09f, 28, 20);
+        MeshUtils::renderEllipsoid(0.19f, 0.22f, 0.08f, 28, 20);
         glPopMatrix();
     }
 
-    // --- 다리 (둥근 발 + 노란 발바닥). 이제 가운데 '한 다리'로만 쓰므로 통통하게. ---
+    // --- 다리 (통통한 타원체 + 끝에 노란 발바닥) ---
     void renderLeg() {
         Lighting::applyPlushMaterial();
         Palette::brown();
+        renderPlushLimb(0.38f, 0.40f, 1.10f);
 
-        // 다리(허벅지~정강이): 통통한 타원체.
-        renderPlushLimb(0.44f, 0.48f, 1.05f);
-
-        // 발: 앞으로 살짝 튀어나온 둥근 발등(갈색)
+        // 노란 발바닥 — 발 끝 앞-아래에 둥근 타원. 두 번째 사진의 패드 위치 참고.
         glPushMatrix();
-        glTranslatef(0.0f, -1.04f, 0.14f);
-        MeshUtils::renderEllipsoid(0.44f, 0.34f, 0.56f, 28, 24);
-        glPopMatrix();
-
-        // 노란 발바닥: 발 앞-아래 면에 크고 둥근 납작 패드. X축으로 눕혀
-        //  패드 면이 앞-아래를 향하게 → 발을 앞으로 들면 정면에서 살짝 보인다.
-        glPushMatrix();
-        glTranslatef(0.0f, -1.22f, 0.34f);
-        glRotatef(70.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, -1.06f, 0.15f);
+        glRotatef(64.0f, 1.0f, 0.0f, 0.0f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.30f, 0.34f, 0.11f, 28, 20);
+        MeshUtils::renderEllipsoid(0.22f, 0.26f, 0.09f, 28, 20);
         glPopMatrix();
     }
 
@@ -196,34 +187,33 @@ SceneNode* BuildBody() {
     torso->setRenderFunction(renderBody);
     root->addChild(torso);
 
-    // --- 흰 배 (몸통 앞면에 부착. 커진 몸에 맞춰 더 크고 앞으로) ---
+    // --- 흰 배 (몸통 앞면 아래-가운데. 갈색이 둘레로 보이게 적당한 크기) ---
     SceneNode* belly = new SceneNode();
-    belly->setTranslation(0.0f, -0.15f, 0.66f);
+    belly->setTranslation(0.0f, -0.22f, 0.68f);
     belly->setRenderFunction(renderBelly);
     torso->addChild(belly);
 
-    // --- 왼팔: 번쩍 든 인사(웨이브) 포즈 ---
-    //  어깨 기준 Z축 -155° → 거의 수직으로 위로, 끝이 머리 옆으로. X -12°는 살짝 앞.
-    SceneNode* leftShoulder = new SceneNode();
-    leftShoulder->setTranslation(-0.95f, 0.55f, 0.08f);
-    leftShoulder->setRotation(-155.0f, 0.0f, 0.0f, 1.0f);
+    // ===== 만세(별) 포즈: 양팔은 위로-바깥, 양다리는 아래로-바깥, 좌우 대칭 =====
+    //  팔다리는 로컬에서 -Y 로 내려오므로 어깨/고관절에서 Z축으로 돌려 펼친다.
+    //  Rz(θ) 적용 시 끝점 방향 = (sinθ, -cosθ). 왼쪽(-X)은 θ<0, 오른쪽(+X)은 θ>0
+    //  으로 두면 좌우 대칭으로 벌어진다.
 
+    // 왼팔: 위로-왼쪽 (Z -132° → 수직에서 48° 벌어진 만세). X -8°로 손바닥 살짝 앞.
+    SceneNode* leftShoulder = new SceneNode();
+    leftShoulder->setTranslation(-0.92f, 0.58f, 0.08f);
+    leftShoulder->setRotation(-132.0f, 0.0f, 0.0f, 1.0f);
     SceneNode* leftArmX = new SceneNode();
-    leftArmX->setRotation(-12.0f, 1.0f, 0.0f, 0.0f);
+    leftArmX->setRotation(-8.0f, 1.0f, 0.0f, 0.0f);
     leftArmX->setRenderFunction(renderArm);
     leftShoulder->addChild(leftArmX);
     torso->addChild(leftShoulder);
 
-    // --- 오른팔: 배 쪽으로 내려 살짝 안고 있는 자세 ---
-    //  Z -30°(아래+안쪽) + X -38°(앞으로 당겨 배 위에 손이 오게).
-    //  ※ X 부호 주의: -Y 로 내려온 팔을 +X축 기준 음각으로 돌려야 손이 앞(+z)으로
-    //    온다. 양각이면 뒤(-z)로 돌아가 몸통 뒤에 숨어 '팔이 사라진' 것처럼 보인다.
+    // 오른팔: 위로-오른쪽 (Z +132°). 좌우 대칭.
     SceneNode* rightShoulder = new SceneNode();
-    rightShoulder->setTranslation(0.95f, 0.55f, 0.08f);
-    rightShoulder->setRotation(-30.0f, 0.0f, 0.0f, 1.0f);
-
+    rightShoulder->setTranslation(0.92f, 0.58f, 0.08f);
+    rightShoulder->setRotation(132.0f, 0.0f, 0.0f, 1.0f);
     SceneNode* rightArmX = new SceneNode();
-    rightArmX->setRotation(-38.0f, 1.0f, 0.0f, 0.0f);
+    rightArmX->setRotation(-8.0f, 1.0f, 0.0f, 0.0f);
     rightArmX->setRenderFunction(renderArm);
     rightShoulder->addChild(rightArmX);
     torso->addChild(rightShoulder);
@@ -243,13 +233,26 @@ SceneNode* BuildBody() {
     zipper->setRenderFunction(renderZipper);
     torso->addChild(zipper);
 
-    // --- 다리: '한 다리'만. 몸 아래-가운데에서 앞으로 약간 떠 있게 두고, 발을
-    //     앞으로 들어(X축 -28°) 노란 발바닥이 정면에서 살짝 보이게 한다. ---
-    SceneNode* legPivot = new SceneNode();
-    legPivot->setTranslation(0.0f, -0.70f, 0.28f);   // 바닥 중앙, 살짝 앞으로 띄움
-    legPivot->setRotation(-28.0f, 1.0f, 0.0f, 0.0f); // 발끝을 앞-위로 → 발바닥 노출
-    legPivot->setRenderFunction(renderLeg);
-    root->addChild(legPivot);
+    // --- 양다리: 만세 포즈에 맞춰 아래로-바깥으로 시원하게 벌림 (좌우 대칭) ---
+    //  왼다리 Z -30° / 오른다리 Z +30° 로 A자 스탠스. 발끝의 노란 발바닥이 살짝
+    //  앞을 보도록 발을 약간 앞으로(X -14°) 든다.
+    SceneNode* leftLegPivot = new SceneNode();
+    leftLegPivot->setTranslation(-0.50f, -0.74f, 0.12f);
+    leftLegPivot->setRotation(-30.0f, 0.0f, 0.0f, 1.0f);
+    SceneNode* leftLegX = new SceneNode();
+    leftLegX->setRotation(-14.0f, 1.0f, 0.0f, 0.0f);
+    leftLegX->setRenderFunction(renderLeg);
+    leftLegPivot->addChild(leftLegX);
+    root->addChild(leftLegPivot);
+
+    SceneNode* rightLegPivot = new SceneNode();
+    rightLegPivot->setTranslation(0.50f, -0.74f, 0.12f);
+    rightLegPivot->setRotation(30.0f, 0.0f, 0.0f, 1.0f);
+    SceneNode* rightLegX = new SceneNode();
+    rightLegX->setRotation(-14.0f, 1.0f, 0.0f, 0.0f);
+    rightLegX->setRenderFunction(renderLeg);
+    rightLegPivot->addChild(rightLegX);
+    root->addChild(rightLegPivot);
 
     return root;
 }
