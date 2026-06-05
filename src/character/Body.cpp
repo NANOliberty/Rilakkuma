@@ -163,13 +163,16 @@ namespace {
         Palette::brown();
         renderPlushLimb(0.40f, 0.42f, 1.20f);
 
-        // 노란 발바닥 — 팔과 같은 방식으로 발 '앞면'에 납작한 타원을 돌출.
-        //  발은 아래를 향하므로 살짝만 아래로 기울여(30°) 발바닥처럼 보이게.
+        // 노란 발바닥 — 발 끝 '아래쪽'에 깔아 발바닥(sole)처럼 보이게.
+        //  y 를 더 내려 발끝에 붙이고, X 회전을 키워(53°) 패드가 아래를 향하게.
+        //  → 발을 살짝 든 각도에서 정면-아래로 동그란 발바닥이 보인다.
+        //  [조절] y(-1.14): 작을수록 발끝, z(0.25): 클수록 앞 돌출, 회전(53):
+        //         클수록 더 아래(바닥)를 향함.
         glPushMatrix();
-        glTranslatef(0.0f, -1.06f, 0.31f);
-        glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, -1.14f, 0.25f);
+        glRotatef(53.0f, 1.0f, 0.0f, 0.0f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.22f, 0.26f, 0.12f, 28, 20);
+        MeshUtils::renderEllipsoid(0.24f, 0.27f, 0.11f, 28, 20);
         glPopMatrix();
     }
 
