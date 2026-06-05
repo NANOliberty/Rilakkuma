@@ -102,28 +102,39 @@ namespace {
     void renderArm() {
         Lighting::applyPlushMaterial();
         Palette::brown();
-        renderPlushLimb(0.30f, 0.30f, 1.05f);
+        renderPlushLimb(0.30f, 0.30f, 1.10f);
 
-        // 손바닥(노란 패드) — 팔 끝 앞면에 납작한 타원
+        // 손바닥(노란 패드) — 팔 끝 앞면에 크고 둥근 납작 타원.
+        //  X축으로 눕혀 손바닥 면이 앞(+z)을 향하게 → 정면에서 패드가 잘 보임.
         glPushMatrix();
-        glTranslatef(0.0f, -0.98f, 0.07f);
-        glRotatef(10.0f, 1.0f, 0.0f, 0.0f);
+        glTranslatef(0.0f, -1.04f, 0.13f);
+        glRotatef(78.0f, 1.0f, 0.0f, 0.0f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.19f, 0.10f, 0.19f, 24, 16);
+        MeshUtils::renderEllipsoid(0.21f, 0.23f, 0.09f, 28, 20);
         glPopMatrix();
     }
 
-    // --- 다리 (노란 발바닥 통합) ---
+    // --- 다리 (둥근 발 + 노란 발바닥) ---
     void renderLeg() {
         Lighting::applyPlushMaterial();
         Palette::brown();
-        renderPlushLimb(0.40f, 0.44f, 0.95f);
 
-        // 발바닥 노란 타원 — 아래 앞쪽으로 살짝
+        // 다리(허벅지~정강이): 통통한 타원체. 레퍼런스 비율에 맞춰 길게.
+        renderPlushLimb(0.38f, 0.42f, 1.05f);
+
+        // 발: 앞으로 살짝 튀어나온 둥근 발등(갈색)
         glPushMatrix();
-        glTranslatef(0.0f, -0.86f, 0.12f);
+        glTranslatef(0.0f, -1.02f, 0.12f);
+        MeshUtils::renderEllipsoid(0.38f, 0.30f, 0.48f, 28, 24);
+        glPopMatrix();
+
+        // 노란 발바닥: 발 앞-아래 면에 크고 둥근 납작 패드. X축으로 눕혀
+        //  패드 면이 앞-아래를 향하게 → 정면에서 둥근 발바닥이 제대로 보인다.
+        glPushMatrix();
+        glTranslatef(0.0f, -1.16f, 0.30f);
+        glRotatef(72.0f, 1.0f, 0.0f, 0.0f);
         Palette::yellow();
-        MeshUtils::renderEllipsoid(0.30f, 0.16f, 0.40f, 24, 16);
+        MeshUtils::renderEllipsoid(0.25f, 0.29f, 0.10f, 28, 20);
         glPopMatrix();
     }
 
@@ -175,10 +186,10 @@ namespace {
 
 SceneNode* BuildBody() {
 
-    // 몸 루트. 몸통 윗면(y = -0.45 + 1.05 = 0.60)이 머리 아랫면(y = 0.5)을 0.10
-    // 넘어 올라와 머리와 겹치게 한다 → 목이 뜨지 않고 자연스럽게 이어짐.
+    // 몸 루트. 몸통 윗면(y = -0.33 + 1.05 = 0.72)이 머리 아랫면(y = 0.5)을 0.22
+    // 깊게 파고들어 머리 속으로 들어가게 한다 → 목 없이 머리-몸이 푹 이어짐.
     SceneNode* root = new SceneNode();
-    root->setTranslation(0.0f, -0.45f, 0.0f);
+    root->setTranslation(0.0f, -0.33f, 0.0f);
 
     // 상체(몸통). 이전엔 -15° 기울여서 머리(안 기울어짐)와 따로 놀았다 → 똑바로
     // 세워 머리·몸·팔이 한 축으로 정렬되게 한다.
@@ -234,8 +245,9 @@ SceneNode* BuildBody() {
     torso->addChild(zipper);
 
     // --- 왼쪽 다리: 살짝 벌리고 앞으로 가볍게 (생기 있는 스탠스) ---
+    //  몸을 올린 만큼 고관절도 내려(-0.72) 길어진 다리가 몸 아래로 충분히 나오게.
     SceneNode* leftLegPivot = new SceneNode();
-    leftLegPivot->setTranslation(-0.48f, -0.62f, 0.10f);
+    leftLegPivot->setTranslation(-0.48f, -0.72f, 0.10f);
     leftLegPivot->setRotation(-14.0f, 0.0f, 0.0f, 1.0f);
 
     SceneNode* leftLegX = new SceneNode();
@@ -246,7 +258,7 @@ SceneNode* BuildBody() {
 
     // --- 오른쪽 다리: 반대로 벌림 ---
     SceneNode* rightLegPivot = new SceneNode();
-    rightLegPivot->setTranslation(0.48f, -0.62f, 0.10f);
+    rightLegPivot->setTranslation(0.48f, -0.72f, 0.10f);
     rightLegPivot->setRotation(14.0f, 0.0f, 0.0f, 1.0f);
 
     SceneNode* rightLegMesh = new SceneNode();
