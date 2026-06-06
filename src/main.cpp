@@ -61,7 +61,16 @@ void display() {
     glLoadIdentity();
     g_camera.apply();
 
-    if (g_background) g_background->render();
+    // 배경(방)만 백페이스 컬링으로 그린다. 카메라가 어떤 벽의 '바깥'에서 안을
+    // 보면 그 벽은 뒷면이 되어 컬링 → 자동으로 투과되어 가운데 캐릭터가 안 가린다.
+    // (세 벽 모두 안쪽 면이 front-face(CCW)라 안에서는 정상으로 보인다.)
+    if (g_background) {
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glFrontFace(GL_CCW);
+        g_background->render();
+        glDisable(GL_CULL_FACE);   // 캐릭터는 컬링 영향 없이 그대로 그림
+    }
     if (g_rilakkuma)  g_rilakkuma->render();
 
     glutSwapBuffers();
