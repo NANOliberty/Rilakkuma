@@ -61,6 +61,7 @@
 #include <windows.h>
 #endif
 #include <GL/freeglut.h>
+#include <cmath>
 
 namespace {
 
@@ -181,12 +182,28 @@ namespace {
         Lighting::applyPlushMaterial();
         Palette::zipper();
 
+        // 몸통(renderBody)의 '등 표면 z'를 그대로 계산해 지퍼를 그 위에 얹는다.
+        //  → 몸통을 키우거나 모양을 바꿔도 지퍼가 등 표면에 딱 붙어 안 파묻힌다.
+        //  (renderBody 와 같은 파라미터를 쓴다. 둘을 같이 바꾸면 자동으로 맞음.)
+        const float rx = 1.15f, rz = 0.92f, halfH = 1.18f, cap = 1.1f;
+        const float bandHalf = halfH - cap;          // 가운데 곧은 구간 반높이
+        auto backZ = [&](float y) -> float {         // 그 높이의 등(뒤) 표면 z(음수)
+            float ay = fabsf(y);
+            float zr;
+            if (ay <= bandHalf) {
+                zr = rz;
+            } else {
+                float hv = (ay - bandHalf) / (cap / rx);
+                float inside = rx * rx - hv * hv;
+                zr = (inside > 0.0f ? sqrtf(inside) : 0.0f) * (rz / rx);
+            }
+            return -zr;                              // 등은 -z 쪽
+        };
+
         for (int i = 0; i < 15; ++i) {
             glPushMatrix();
             float yPos = 0.55f - i * 0.075f;
-
-            float zCurveOffset = (yPos * yPos) * 0.30f;
-            float zPos = -0.90f + zCurveOffset;
+            float zPos = backZ(yPos);                // 등 표면에 얹기(이빨이 살짝 박힘)
 
             glTranslatef(0.0f, yPos, zPos);
 
@@ -203,11 +220,10 @@ namespace {
             glPopMatrix();
         }
 
-        // 2. 지퍼 손잡이
+        // 2. 지퍼 손잡이 — 등 표면에서 살짝 더 바깥(0.04)으로 띄움
         glPushMatrix();
         float sliderY = 0.62f;
-
-        float sliderZ = -0.90f + ((sliderY * sliderY) * 0.30f) - 0.04f;
+        float sliderZ = backZ(sliderY) - 0.04f;
         glTranslatef(0.0f, sliderY, sliderZ);
 
         glRotatef(30.0f, 1.0f, 0.0f, 0.0f);
