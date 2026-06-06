@@ -207,11 +207,13 @@ namespace {
 
             glTranslatef(0.0f, yPos, zPos);
 
-            // 세로선 (지퍼 레일)
+            // 세로선 (지퍼 레일) — 굵게 + 등 표면 밖으로 밀고(-z) 세그먼트를 길게
+            //  겹쳐 연속된 줄로 보이게. (이전엔 너무 가늘고 표면에 묻혀 안 보였다.)
             glPushMatrix();
+            glTranslatef(0.0f, 0.0f, -0.03f);          // 등 표면 밖(뒤)으로 살짝
             float tiltAngle = yPos * 35.0f;
             glRotatef(tiltAngle, 1.0f, 0.0f, 0.0f);
-            MeshUtils::renderCapsule(0.012f, 0.085f);
+            MeshUtils::renderCapsule(0.022f, 0.11f);
             glPopMatrix();
 
             // 가로선 (지퍼 이빨)
