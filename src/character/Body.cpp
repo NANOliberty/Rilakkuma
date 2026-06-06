@@ -207,22 +207,22 @@ namespace {
 
             glTranslatef(0.0f, yPos, zPos);
 
-            // 세로선 (지퍼 레일) — 핵심: 이빨과 '같은 회색'이라 묻혔던 게 문제.
-            //  ① 어두운 금속색으로 대비 ② 굵게 ③ 이빨보다 더 앞으로(-0.08) 빼고
-            //  ④ 세그먼트를 길게(0.13) 겹쳐 끊김 없는 한 줄로 → 가운데 세로선이
-            //  확실히 도드라진다.
-            glColor3f(0.32f, 0.32f, 0.38f);
+            // 세로선 (지퍼 레일) — 이빨과 같은 회색이라 묻혔던 게 핵심 문제.
+            //  ① 어두운 금속색(대비) ② 굵게 ③ 표면에 딱 붙되 이빨보다 앞(-0.035)
+            //  ④ 세그먼트를 길게(0.12) 겹쳐 끊김 없는 한 줄 → 가운데 세로선이 굵고
+            //  진하게 쭉 보인다.
+            glColor3f(0.28f, 0.28f, 0.32f);
             glPushMatrix();
-            glTranslatef(0.0f, 0.0f, -0.08f);          // 이빨보다 더 바깥(뒤)으로
+            glTranslatef(0.0f, 0.0f, -0.035f);         // 표면에 붙고 이빨보다 앞
             float tiltAngle = yPos * 35.0f;
             glRotatef(tiltAngle, 1.0f, 0.0f, 0.0f);
-            MeshUtils::renderCapsule(0.032f, 0.13f);
+            MeshUtils::renderCapsule(0.034f, 0.12f);
             glPopMatrix();
 
-            // 가로선 (지퍼 이빨) — 밝은 회색으로 분리, 약간 작게
+            // 가로선 (지퍼 이빨) — 밝은 회색으로 분리, 레일보다 덜 튀게
             Palette::zipper();
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-            glutSolidTorus(0.014f, 0.040f, 10, 16);
+            glutSolidTorus(0.013f, 0.034f, 10, 16);
             glPopMatrix();
         }
 
