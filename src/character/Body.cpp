@@ -207,19 +207,22 @@ namespace {
 
             glTranslatef(0.0f, yPos, zPos);
 
-            // 세로선 (지퍼 레일) — 이빨(torus, 0.06 돌출)보다 '더 앞으로'(-0.07)
-            //  빼야 뒤에서 봤을 때 이빨에 안 가린다. 그러면 가운데 세로 레일 +
-            //  양옆으로 삐져나온 이빨 = 진짜 지퍼 모양. 세그먼트를 길게 겹쳐 연속.
+            // 세로선 (지퍼 레일) — 핵심: 이빨과 '같은 회색'이라 묻혔던 게 문제.
+            //  ① 어두운 금속색으로 대비 ② 굵게 ③ 이빨보다 더 앞으로(-0.08) 빼고
+            //  ④ 세그먼트를 길게(0.13) 겹쳐 끊김 없는 한 줄로 → 가운데 세로선이
+            //  확실히 도드라진다.
+            glColor3f(0.32f, 0.32f, 0.38f);
             glPushMatrix();
-            glTranslatef(0.0f, 0.0f, -0.07f);          // 이빨보다 더 바깥(뒤)으로
+            glTranslatef(0.0f, 0.0f, -0.08f);          // 이빨보다 더 바깥(뒤)으로
             float tiltAngle = yPos * 35.0f;
             glRotatef(tiltAngle, 1.0f, 0.0f, 0.0f);
-            MeshUtils::renderCapsule(0.026f, 0.11f);
+            MeshUtils::renderCapsule(0.032f, 0.13f);
             glPopMatrix();
 
-            // 가로선 (지퍼 이빨)
+            // 가로선 (지퍼 이빨) — 밝은 회색으로 분리, 약간 작게
+            Palette::zipper();
             glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-            glutSolidTorus(0.015f, 0.045f, 10, 16);
+            glutSolidTorus(0.014f, 0.040f, 10, 16);
             glPopMatrix();
         }
 
