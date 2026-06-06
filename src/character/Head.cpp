@@ -101,7 +101,42 @@ void renderFace() {
     const float p0    = kFacePitch * kPi / 180.0f;
     const int   N     = 30;
 
+    // 패치 곡면(위치/법선/UV)을 그리는 람다 — 데칼 패스와 털결 패스에서 공용.
+    auto drawPatch = [&]() {
+        for (int i = 0; i < N; ++i) {
+            float v0 = (float)i / N;
+            float v1 = (float)(i + 1) / N;
+            float th0 = p0 + (v0 - 0.5f) * 2.0f * halfV;
+            float th1 = p0 + (v1 - 0.5f) * 2.0f * halfV;
+
+            glBegin(GL_QUAD_STRIP);
+            for (int j = 0; j <= N; ++j) {
+                float u  = (float)j / N;
+                float ph = (u - 0.5f) * 2.0f * halfU;
+                {
+                    float dx = cosf(th1) * sinf(ph);
+                    float dy = sinf(th1);
+                    float dz = cosf(th1) * cosf(ph);
+                    glTexCoord2f(u, v1);
+                    glNormal3f(dx, dy, dz);
+                    glVertex3f(R * dx, R * dy, R * dz);
+                }
+                {
+                    float dx = cosf(th0) * sinf(ph);
+                    float dy = sinf(th0);
+                    float dz = cosf(th0) * cosf(ph);
+                    glTexCoord2f(u, v0);
+                    glNormal3f(dx, dy, dz);
+                    glVertex3f(R * dx, R * dy, R * dz);
+                }
+            }
+            glEnd();
+        }
+    };
+
+    // 1) 코+입 데칼 패스 (기존)
     bool textured = (g_faceTexId != 0);
+    Lighting::applyPlushMaterial();
     if (textured) {
         glEnable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, g_faceTexId);
@@ -110,45 +145,27 @@ void renderFace() {
     } else {
         Palette::cream();
     }
-    Lighting::applyPlushMaterial();
-
-    for (int i = 0; i < N; ++i) {
-        float v0 = (float)i / N;
-        float v1 = (float)(i + 1) / N;
-        float th0 = p0 + (v0 - 0.5f) * 2.0f * halfV;
-        float th1 = p0 + (v1 - 0.5f) * 2.0f * halfV;
-
-        glBegin(GL_QUAD_STRIP);
-        for (int j = 0; j <= N; ++j) {
-            float u  = (float)j / N;
-            float ph = (u - 0.5f) * 2.0f * halfU;
-
-            // 위 행 (v1)
-            {
-                float dx = cosf(th1) * sinf(ph);
-                float dy = sinf(th1);
-                float dz = cosf(th1) * cosf(ph);
-                if (textured) glTexCoord2f(u, v1);
-                glNormal3f(dx, dy, dz);
-                glVertex3f(R * dx, R * dy, R * dz);
-            }
-            // 아래 행 (v0)
-            {
-                float dx = cosf(th0) * sinf(ph);
-                float dy = sinf(th0);
-                float dz = cosf(th0) * cosf(ph);
-                if (textured) glTexCoord2f(u, v0);
-                glNormal3f(dx, dy, dz);
-                glVertex3f(R * dx, R * dy, R * dz);
-            }
-        }
-        glEnd();
-    }
-
+    drawPatch();
     if (textured) {
         glBindTexture(GL_TEXTURE_2D, 0);
         glDisable(GL_TEXTURE_2D);
     }
+
+    // 2) 털결 패스 — 머즐(크림 얼굴)에도 머리와 같은 결을 입혀 '매끈해서 확 튀던'
+    //    경계를 없앤다. 곱연산(화면색 × 털휘도) 블렌딩으로 색 위에 결만 얹는다.
+    //    조명을 꺼(REPLACE) 이중 음영을 막고, 같은 깊이를 통과(LEQUAL)시켜 덧그린다.
+    Lighting::beginFur();
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);  // 털휘도만 출력
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_DST_COLOR, GL_ZERO);                          // dst × src(털)
+    glDepthFunc(GL_LEQUAL);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    drawPatch();
+    glDepthFunc(GL_LESS);
+    glDisable(GL_BLEND);
+    glEnable(GL_LIGHTING);
+    Lighting::endFur();
 }
 
 } // namespace
