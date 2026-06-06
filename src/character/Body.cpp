@@ -109,12 +109,14 @@ namespace {
     void renderBody() {
         Lighting::applyPlushMaterial();
         Palette::brown();
+        Lighting::beginFur();
         const float rx = 1.15f, rz = 0.92f, halfH = 1.18f;
         const float cap = 1.1f;   // < rx → 약간 납작한 돔 = 원기둥 느낌
         glPushMatrix();
         glScalef(1.0f, 1.0f, rz / rx);                 // 앞뒤를 납작하게(타원 단면)
         renderRoundedColumn(rx, rx, 2.0f * halfH, cap, cap);
         glPopMatrix();
+        Lighting::endFur();
     }
 
     // --- 배 (흰 타원, 몸통 앞면에 납작하게) ---
@@ -146,7 +148,9 @@ namespace {
     void renderArm() {
         Lighting::applyPlushMaterial();
         Palette::brown();
+        Lighting::beginFur();
         renderPlushLimb(0.31f, 0.31f, 1.12f);
+        Lighting::endFur();
 
         // 손바닥(노란 패드) — 귀 안쪽 노란 부분과 같은 방식: 팔 '앞면'에 납작한
         //  타원을 살짝 돌출시켜 정면에서 동그란 패드가 그냥 보이게(눕히지 않음).
@@ -162,7 +166,9 @@ namespace {
     void renderLeg() {
         Lighting::applyPlushMaterial();
         Palette::brown();
+        Lighting::beginFur();
         renderPlushLimb(0.40f, 0.42f, 1.20f);
+        Lighting::endFur();
 
         // 노란 발바닥 — 발 끝 '아래쪽'에 깔아 발바닥(sole)처럼 보이게.
         //  y 를 더 내려 발끝에 붙이고, X 회전을 키워(53°) 패드가 아래를 향하게.
@@ -293,7 +299,9 @@ SceneNode* BuildBody() {
     tail->setRenderFunction([]() {
         Lighting::applyPlushMaterial();
         Palette::brown();
+        Lighting::beginFur();
         glutSolidSphere(0.24f, 24, 24);
+        Lighting::endFur();
         });
     torso->addChild(tail);
 

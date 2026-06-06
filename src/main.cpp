@@ -46,6 +46,7 @@ void init() {
     glShadeModel(GL_SMOOTH);
 
     Lighting::init();
+    Lighting::initFur();   // 절차적 털결 텍스처 생성(갈색 부위에 은은하게)
 
     GLuint faceTex = loadFaceTexture();
     SetFaceTexture(faceTex);

@@ -46,7 +46,10 @@ void renderHeadSphere() {
     // 순수 구로 그린다. (구를 스케일하면 표면 법선이 얼굴 텍스처 패치의 법선과
     // 어긋나 패치 사각 경계가 음영 차이로 드러난다. 구로 두면 패치가 머리와
     // 완전히 같은 색·조명이 되어 경계가 사라진다.)
+    //  털결: 머리에도 은은하게. endFur 로 끝내 얼굴 패치(자체 텍스처)엔 영향 없음.
+    Lighting::beginFur();
     glutSolidSphere(kHeadRadius, 48, 48);
+    Lighting::endFur();
 }
 
 //------------------------------------------------------------------------------
@@ -68,10 +71,12 @@ void renderEar() {
 
     // 귀 본체 (갈색, 납작하고 크게)
     Palette::brown();
+    Lighting::beginFur();
     glPushMatrix();
     glScalef(1.0f, 1.0f, 0.5f);
     glutSolidSphere(0.46f, 32, 32);
     glPopMatrix();
+    Lighting::endFur();
 
     // 안쪽 노란색: 작게 + 귀 아래-안쪽으로(원본처럼). 귀가 바깥으로 기울어
     // 있어 로컬 -y 로 내리면 자연히 안쪽-아래에 위치한다.
