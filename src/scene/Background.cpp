@@ -127,12 +127,13 @@ static void renderFloor() {
     else {
         colorWood();
     }
+    // 정점 감김이 윗면(+y)이 앞면이 되도록(백페이스 컬링 시 위에서 봐도 안 잘림).
     glBegin(GL_QUADS);
     glNormal3f(0.0f, 1.0f, 0.0f);
-    glTexCoord2f(0.0f, 0.0f);   glVertex3f(kWallL, kFloorY, kWallBack);
-    glTexCoord2f(1.0f, 0.0f);   glVertex3f(kWallR, kFloorY, kWallBack);
-    glTexCoord2f(1.0f, 0.857f); glVertex3f(kWallR, kFloorY, kWallFront);
     glTexCoord2f(0.0f, 0.857f); glVertex3f(kWallL, kFloorY, kWallFront);
+    glTexCoord2f(1.0f, 0.857f); glVertex3f(kWallR, kFloorY, kWallFront);
+    glTexCoord2f(1.0f, 0.0f);   glVertex3f(kWallR, kFloorY, kWallBack);
+    glTexCoord2f(0.0f, 0.0f);   glVertex3f(kWallL, kFloorY, kWallBack);
     glEnd();
     if (textured) {
         glBindTexture(GL_TEXTURE_2D, 0);
@@ -195,13 +196,14 @@ static void renderRightWall() {
     glTranslatef(kWallR - 0.05f, 1.4f, -2.0f);
     glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 
+    // 감김을 방 안쪽(-x 월드)이 앞면이 되도록 뒤집음(컬링 시 안 잘리게).
     colorSky();
     glBegin(GL_QUADS);
     glNormal3f(0.0f, 0.0f, -1.0f);
-    glVertex3f(-4.0f, -3.8f, -0.01f);
-    glVertex3f(4.0f, -3.8f, -0.01f);
-    glVertex3f(4.0f, 3.8f, -0.01f);
     glVertex3f(-4.0f, 3.8f, -0.01f);
+    glVertex3f(4.0f, 3.8f, -0.01f);
+    glVertex3f(4.0f, -3.8f, -0.01f);
+    glVertex3f(-4.0f, -3.8f, -0.01f);
     glEnd();
 
     colorWindow();
