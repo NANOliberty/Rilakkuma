@@ -57,12 +57,15 @@ static void drawFrameProp(float zCenter, float yCenter, float w, float h, GLuint
         colorArt();
     }
 
+    // ※ 이 액자는 -90° Y회전이 들어가 그림 면이 바깥(−x 월드)을 향한다. 백페이스
+    //   컬링을 켜면 안에서 뒷면이 되어 잘리므로, 정점 감김을 뒤집어 그림 면이
+    //   방 안쪽을 향하게 한다(텍스처 좌표는 각 정점 그대로라 그림은 동일).
     glBegin(GL_QUADS);
-    glNormal3f(0.0f, 0.0f, 1.0f);
-    glTexCoord2f(0.0f, 0.0f); glVertex3f(-w / 2.0f, -h / 2.0f, 0.01f);
-    glTexCoord2f(1.0f, 0.0f); glVertex3f(w / 2.0f, -h / 2.0f, 0.01f);
-    glTexCoord2f(1.0f, 1.0f); glVertex3f(w / 2.0f, h / 2.0f, 0.01f);
+    glNormal3f(0.0f, 0.0f, -1.0f);
     glTexCoord2f(0.0f, 1.0f); glVertex3f(-w / 2.0f, h / 2.0f, 0.01f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(w / 2.0f, h / 2.0f, 0.01f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(w / 2.0f, -h / 2.0f, 0.01f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-w / 2.0f, -h / 2.0f, 0.01f);
     glEnd();
 
     if (textured) {
